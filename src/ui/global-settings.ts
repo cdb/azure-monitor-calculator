@@ -13,10 +13,9 @@ export function renderGlobalSettings(
   const groups: Record<string, string> = {
     primary: 'US Regions',
     active: 'Your Active Regions',
-    other: 'All Regions',
   };
 
-  const optgroups = (['primary', 'active', 'other'] as const)
+  const optgroups = (['primary', 'active'] as const)
     .map((g) => {
       const opts = REGIONS.filter((r) => r.group === g)
         .map(
@@ -43,7 +42,7 @@ export function renderGlobalSettings(
               <select class="form-select input-sm" id="region">
                 ${optgroups}
               </select>
-              <span id="region-loading" class="text-small color-fg-muted" style="display:none;">Loading prices…</span>
+
             </div>
           </div>
 
@@ -91,7 +90,6 @@ export function renderGlobalSettings(
   `;
 
   const regionSelect = container.querySelector('#region') as HTMLSelectElement;
-  const regionLoading = container.querySelector('#region-loading') as HTMLElement;
   const discountInput = container.querySelector('#discount') as HTMLInputElement;
   const discountSlider = container.querySelector('#discount-slider') as HTMLInputElement;
   const growthInput = container.querySelector('#growth') as HTMLInputElement;
@@ -106,17 +104,8 @@ export function renderGlobalSettings(
   };
 
   regionSelect.addEventListener('change', () => {
-    const regionId = regionSelect.value;
-    regionLoading.style.display = '';
-    regionSelect.disabled = true;
-    onRegionChange(regionId);
+    onRegionChange(regionSelect.value);
   });
-
-  // Expose a way for main.ts to hide the loading indicator after fetch completes
-  (container as any).__hideRegionLoading = () => {
-    regionLoading.style.display = 'none';
-    regionSelect.disabled = false;
-  };
 
   discountInput.addEventListener('input', () => { discountSlider.value = discountInput.value; sync(); });
   discountSlider.addEventListener('input', () => { discountInput.value = discountSlider.value; sync(); });

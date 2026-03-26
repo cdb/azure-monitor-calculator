@@ -1,7 +1,6 @@
 import '@primer/css/dist/primer.css';
 import type { CalculatorState } from './state';
-import { setPricing, FALLBACK_PRICING } from './pricing-data';
-import { fetchRegionPricing } from './pricing-fetch';
+import { setPricing, PRICING_LAST_FETCHED } from './pricing-data';
 import { readStateFromUrl, readScenarioBFromUrl, writeStateToUrl, copyLinkToClipboard } from './url-state';
 import { calculateMonthlyCost, generateProjection } from './engine';
 import { currency } from './format';
@@ -18,7 +17,7 @@ import type { ScenarioBOverrides } from './ui/scenario-b';
 // Read region from URL (default: eastus)
 const params = new URLSearchParams(window.location.search);
 let currentRegion: string = params.get('region') || 'eastus';
-setPricing(FALLBACK_PRICING);
+setPricing(currentRegion);
 
 let state: CalculatorState = readStateFromUrl();
 const scenarioBFromUrl = readScenarioBFromUrl();
@@ -79,20 +78,9 @@ function onScenarioBChange(overrides: ScenarioBOverrides) {
   recalculate();
 }
 
-function hideRegionLoading() {
-  (globalSettingsEl as any).__hideRegionLoading?.();
-}
-
-async function onRegionChange(regionId: string) {
+function onRegionChange(regionId: string) {
   currentRegion = regionId;
-  try {
-    const data = await fetchRegionPricing(regionId);
-    setPricing(data);
-  } catch (err) {
-    console.error('Failed to fetch pricing, using fallback:', err);
-    setPricing(FALLBACK_PRICING);
-  }
-  hideRegionLoading();
+  setPricing(regionId);
   // Re-render everything since pricing data changed
   renderVolumeConfig(volumeConfigEl, state, onStateChange);
   renderRetentionConfig(retentionConfigEl, state, onStateChange);
@@ -131,9 +119,10 @@ if (scenarioEnabled) {
 
 recalculate();
 
-// If URL specifies a non-default region, fetch its pricing on load
-if (currentRegion !== 'eastus') {
-  onRegionChange(currentRegion);
+// Footer: pricing date
+const pricingDateNote = document.querySelector<HTMLElement>('#pricing-date-note');
+if (pricingDateNote) {
+  pricingDateNote.textContent = `Pricing data last fetched from Azure Retail Pricing API on ${PRICING_LAST_FETCHED}`;
 }
 
 copyLinkBtn.addEventListener('click', async () => {
