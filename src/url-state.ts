@@ -70,8 +70,13 @@ export function writeStateToUrl(
   state: CalculatorState,
   scenarioEnabled?: boolean,
   scenarioBOverrides?: Partial<CalculatorState>,
+  region?: string,
 ): void {
   const params = new URLSearchParams();
+
+  if (region && region !== 'eastus') {
+    params.set('region', region);
+  }
 
   for (const [stateKey, shortKey] of Object.entries(PARAM_MAP)) {
     const value = (state as any)[stateKey];

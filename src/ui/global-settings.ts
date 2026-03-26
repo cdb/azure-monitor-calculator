@@ -1,15 +1,21 @@
 import type { CalculatorState } from '../state';
+import { REGION_LABELS, setRegion } from '../pricing-data';
+import type { RegionId } from '../pricing-data';
 
 export type StateChangeCallback = (state: CalculatorState) => void;
+export type RegionChangeCallback = (regionId: RegionId) => void;
 
-/**
- * Build the global settings panel.
- */
 export function renderGlobalSettings(
   container: HTMLElement,
   state: CalculatorState,
+  currentRegion: RegionId,
   onChange: StateChangeCallback,
+  onRegionChange: RegionChangeCallback,
 ): void {
+  const regionOptions = Object.entries(REGION_LABELS)
+    .map(([id, label]) => `<option value="${id}" ${id === currentRegion ? 'selected' : ''}>${label}</option>`)
+    .join('');
+
   container.innerHTML = `
     <div class="Box mb-3">
       <div class="Box-header">
@@ -17,6 +23,17 @@ export function renderGlobalSettings(
       </div>
       <div class="Box-body">
         <div class="d-flex flex-wrap" style="gap: 24px;">
+          <div class="form-group" style="min-width: 140px;">
+            <div class="form-group-header">
+              <label for="region">Azure Region</label>
+            </div>
+            <div class="form-group-body">
+              <select class="form-select input-sm" id="region">
+                ${regionOptions}
+              </select>
+            </div>
+          </div>
+
           <div class="form-group" style="min-width: 180px;">
             <div class="form-group-header">
               <label for="discount">Internal Discount %</label>
@@ -55,14 +72,12 @@ export function renderGlobalSettings(
               </select>
             </div>
           </div>
-
-
         </div>
       </div>
     </div>
   `;
 
-  // Wire up events
+  const regionSelect = container.querySelector('#region') as HTMLSelectElement;
   const discountInput = container.querySelector('#discount') as HTMLInputElement;
   const discountSlider = container.querySelector('#discount-slider') as HTMLInputElement;
   const growthInput = container.querySelector('#growth') as HTMLInputElement;
@@ -75,6 +90,12 @@ export function renderGlobalSettings(
     state.projectionMonths = parseInt(periodSelect.value) || 12;
     onChange(state);
   };
+
+  regionSelect.addEventListener('change', () => {
+    const regionId = regionSelect.value as RegionId;
+    setRegion(regionId);
+    onRegionChange(regionId);
+  });
 
   discountInput.addEventListener('input', () => { discountSlider.value = discountInput.value; sync(); });
   discountSlider.addEventListener('input', () => { discountInput.value = discountSlider.value; sync(); });

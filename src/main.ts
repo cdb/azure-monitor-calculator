@@ -1,5 +1,7 @@
 import '@primer/css/dist/primer.css';
 import type { CalculatorState } from './state';
+import { setRegion } from './pricing-data';
+import type { RegionId } from './pricing-data';
 import { readStateFromUrl, readScenarioBFromUrl, writeStateToUrl, copyLinkToClipboard } from './url-state';
 import { calculateMonthlyCost, generateProjection } from './engine';
 import { currency } from './format';
@@ -12,6 +14,11 @@ import { renderProjectionTable } from './ui/projection-table';
 import { renderCharts } from './ui/charts';
 import { renderScenarioB } from './ui/scenario-b';
 import type { ScenarioBOverrides } from './ui/scenario-b';
+
+// Read region from URL (default: eastus)
+const params = new URLSearchParams(window.location.search);
+let currentRegion: RegionId = (params.get('region') as RegionId) || 'eastus';
+setRegion(currentRegion);
 
 let state: CalculatorState = readStateFromUrl();
 const scenarioBFromUrl = readScenarioBFromUrl();
@@ -33,7 +40,7 @@ const scenarioToggle = document.querySelector<HTMLInputElement>('#scenario-toggl
 const scenarioBPanel = document.querySelector<HTMLElement>('#scenario-b-panel')!;
 
 function recalculate() {
-  writeStateToUrl(state, scenarioEnabled, scenarioBOverrides);
+  writeStateToUrl(state, scenarioEnabled, scenarioBOverrides, currentRegion);
 
   const breakdownA = calculateMonthlyCost(state);
   stickyTotalEl.textContent = currency(breakdownA.total);
@@ -45,8 +52,8 @@ function recalculate() {
     stickyTotalBEl.style.display = '';
     stickyTotalBValueEl.textContent = currency(breakdownB.total);
 
-    const projectionB = generateProjection(stateB);
     const projectionA = generateProjection(state);
+    const projectionB = generateProjection(stateB);
     renderCostSummary(costSummaryEl, breakdownA, state.discountPercent, breakdownB);
     renderCharts(chartsEl, breakdownA, projectionA, state.discountPercent, breakdownB, projectionB);
     renderProjectionTable(projectionTableEl, projectionA, projectionB);
@@ -72,6 +79,18 @@ function onScenarioBChange(overrides: ScenarioBOverrides) {
   recalculate();
 }
 
+function onRegionChange(regionId: RegionId) {
+  currentRegion = regionId;
+  // Re-render everything since pricing data changed
+  renderVolumeConfig(volumeConfigEl, state, onStateChange);
+  renderRetentionConfig(retentionConfigEl, state, onStateChange);
+  renderQueryExport(queryExportEl, state, onStateChange);
+  if (scenarioEnabled) {
+    renderScenarioB(scenarioBPanel, state, scenarioBOverrides, onScenarioBChange);
+  }
+  recalculate();
+}
+
 // Toggle scenario mode
 scenarioToggle.addEventListener('change', () => {
   scenarioEnabled = scenarioToggle.checked;
@@ -85,17 +104,15 @@ scenarioToggle.addEventListener('change', () => {
 });
 
 // Initial render
-renderGlobalSettings(globalSettingsEl, state, onStateChange);
+renderGlobalSettings(globalSettingsEl, state, currentRegion, onStateChange, onRegionChange);
 renderVolumeConfig(volumeConfigEl, state, onStateChange);
 renderRetentionConfig(retentionConfigEl, state, onStateChange);
 renderQueryExport(queryExportEl, state, onStateChange);
 
-// Restore scenario B from URL if present
 if (scenarioEnabled) {
   scenarioToggle.checked = true;
   scenarioBPanel.style.display = '';
   renderScenarioB(scenarioBPanel, state, scenarioBOverrides, onScenarioBChange);
-  // Auto-open the details section
   const scenarioSection = document.querySelector<HTMLDetailsElement>('#scenario-section');
   if (scenarioSection) scenarioSection.open = true;
 }

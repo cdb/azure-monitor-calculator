@@ -1,5 +1,5 @@
 // Azure Monitor Logs pricing data sourced from Azure Retail Pricing API
-// Region: East US | Currency: USD | Last updated: 2026-03-26
+// Currency: USD | Last updated: 2026-03-26
 // API: https://prices.azure.com/api/retail/prices
 
 export interface CommitmentTier {
@@ -30,7 +30,6 @@ export interface PricingData {
       auxiliaryDays: number;
       basicDays: number;
       analyticsDays: number;
-      analyticsSentinelDays: number;
     };
   };
 
@@ -47,66 +46,78 @@ export interface PricingData {
   };
 }
 
-export const PRICING: PricingData = {
+export type RegionId = 'eastus' | 'centralus';
+
+function computeSavings(dailyPrice: number, gbPerDay: number, paygPerGb: number): number {
+  const effectivePerGb = dailyPrice / gbPerDay;
+  return Math.round((1 - effectivePerGb / paygPerGb) * 100);
+}
+
+function buildTiers(paygPerGb: number, dailyPrices: number[]): CommitmentTier[] {
+  const gbLevels = [100, 200, 300, 400, 500, 1000, 2000, 5000, 10000, 25000, 50000];
+  return gbLevels.map((gb, i) => ({
+    gbPerDay: gb,
+    dailyPrice: dailyPrices[i],
+    effectivePerGb: Math.round((dailyPrices[i] / gb) * 1000) / 1000,
+    savingsPercent: computeSavings(dailyPrices[i], gb, paygPerGb),
+  }));
+}
+
+const PRICING_EAST_US: PricingData = {
   region: 'East US',
   currency: 'USD',
   lastUpdated: '2026-03-26',
-
   ingestion: {
-    auxiliary: {
-      perGb: 0.05,
-      logProcessingPerGb: 0.05,
-    },
-    basic: {
-      perGb: 0.50,
-    },
+    auxiliary: { perGb: 0.05, logProcessingPerGb: 0.05 },
+    basic: { perGb: 0.50 },
     analytics: {
-      payg: {
-        perGb: 2.30,
-        freeGbPerMonth: 5,
-      },
-      commitmentTiers: [
-        { gbPerDay: 100, dailyPrice: 196, effectivePerGb: 1.96, savingsPercent: 15 },
-        { gbPerDay: 200, dailyPrice: 368, effectivePerGb: 1.84, savingsPercent: 20 },
-        { gbPerDay: 300, dailyPrice: 540, effectivePerGb: 1.80, savingsPercent: 22 },
-        { gbPerDay: 400, dailyPrice: 704, effectivePerGb: 1.76, savingsPercent: 23 },
-        { gbPerDay: 500, dailyPrice: 865, effectivePerGb: 1.73, savingsPercent: 25 },
-        { gbPerDay: 1000, dailyPrice: 1700, effectivePerGb: 1.70, savingsPercent: 26 },
-        { gbPerDay: 2000, dailyPrice: 3320, effectivePerGb: 1.66, savingsPercent: 28 },
-        { gbPerDay: 5000, dailyPrice: 8050, effectivePerGb: 1.61, savingsPercent: 30 },
-        { gbPerDay: 10000, dailyPrice: 15640, effectivePerGb: 1.564, savingsPercent: 32 },
-        { gbPerDay: 25000, dailyPrice: 37950, effectivePerGb: 1.518, savingsPercent: 34 },
-        { gbPerDay: 50000, dailyPrice: 73600, effectivePerGb: 1.472, savingsPercent: 36 },
-      ],
+      payg: { perGb: 2.30, freeGbPerMonth: 5 },
+      commitmentTiers: buildTiers(2.30, [196, 368, 540, 704, 865, 1700, 3320, 8050, 15640, 37950, 73600]),
     },
   },
-
   retention: {
-    interactive: {
-      perGbPerMonth: 0.10,
-      description: 'Analytics logs beyond included 31/90 days, up to 2 years',
-    },
-    longTerm: {
-      perGbPerMonth: 0.02,
-      description: 'All plans, up to 12 years',
-    },
-    included: {
-      auxiliaryDays: 30,
-      basicDays: 30,
-      analyticsDays: 31,
-      analyticsSentinelDays: 90,
-    },
+    interactive: { perGbPerMonth: 0.10, description: 'Analytics logs beyond 31 days, up to 2 years' },
+    longTerm: { perGbPerMonth: 0.02, description: 'All plans, up to 12 years' },
+    included: { auxiliaryDays: 30, basicDays: 30, analyticsDays: 31 },
   },
-
-  query: {
-    basicAuxiliaryPerGb: 0.005,
-    searchJobsPerGb: 0.005,
-  },
-
-  exportCosts: {
-    dataExportPerGb: 0.10,
-    platformLogsPerGb: 0.25,
-    workspaceReplicationPerGb: 0.25,
-    logEmissionPerGb: 0.15,
-  },
+  query: { basicAuxiliaryPerGb: 0.005, searchJobsPerGb: 0.005 },
+  exportCosts: { dataExportPerGb: 0.10, platformLogsPerGb: 0.25, workspaceReplicationPerGb: 0.25, logEmissionPerGb: 0.15 },
 };
+
+const PRICING_CENTRAL_US: PricingData = {
+  region: 'Central US',
+  currency: 'USD',
+  lastUpdated: '2026-03-26',
+  ingestion: {
+    auxiliary: { perGb: 0.06, logProcessingPerGb: 0.06 },
+    basic: { perGb: 0.615 },
+    analytics: {
+      payg: { perGb: 2.76, freeGbPerMonth: 5 },
+      commitmentTiers: buildTiers(2.76, [219.52, 412.16, 604.80, 788.48, 968.80, 1904.00, 3718.40, 9016.00, 17986.00, 43642.50, 84640.00]),
+    },
+  },
+  retention: {
+    interactive: { perGbPerMonth: 0.12, description: 'Analytics logs beyond 31 days, up to 2 years' },
+    longTerm: { perGbPerMonth: 0.024, description: 'All plans, up to 12 years' },
+    included: { auxiliaryDays: 30, basicDays: 30, analyticsDays: 31 },
+  },
+  query: { basicAuxiliaryPerGb: 0.0062, searchJobsPerGb: 0.0062 },
+  exportCosts: { dataExportPerGb: 0.123, platformLogsPerGb: 0.308, workspaceReplicationPerGb: 0.3075, logEmissionPerGb: 0.18 },
+};
+
+export const REGIONS: Record<RegionId, PricingData> = {
+  eastus: PRICING_EAST_US,
+  centralus: PRICING_CENTRAL_US,
+};
+
+export const REGION_LABELS: Record<RegionId, string> = {
+  eastus: 'East US',
+  centralus: 'Central US',
+};
+
+// Mutable current pricing — updated when region changes
+export let PRICING: PricingData = PRICING_EAST_US;
+
+export function setRegion(regionId: RegionId): void {
+  PRICING = REGIONS[regionId];
+}
