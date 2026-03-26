@@ -52,7 +52,7 @@ export interface ProjectionResult {
   grandTotal: number;
 }
 
-const DAYS_PER_MONTH = 30.44; // average
+const DAYS_PER_MONTH = 30;
 
 /**
  * Find the optimal commitment tier for a given daily Analytics volume.
