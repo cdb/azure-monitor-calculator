@@ -8,6 +8,7 @@ import { renderRetentionConfig } from './ui/retention-config';
 import { renderQueryExport } from './ui/query-export';
 import { renderCostSummary } from './ui/cost-summary';
 import { renderProjectionTable } from './ui/projection-table';
+import { renderCharts } from './ui/charts';
 
 // Read initial state from URL or use defaults
 let state: CalculatorState = readStateFromUrl();
@@ -18,6 +19,7 @@ const volumeConfigEl = document.querySelector<HTMLElement>('#volume-config')!;
 const retentionConfigEl = document.querySelector<HTMLElement>('#retention-config')!;
 const queryExportEl = document.querySelector<HTMLElement>('#query-export')!;
 const costSummaryEl = document.querySelector<HTMLElement>('#cost-summary')!;
+const chartsEl = document.querySelector<HTMLElement>('#charts')!;
 const projectionTableEl = document.querySelector<HTMLElement>('#projection-table')!;
 const copyLinkBtn = document.querySelector<HTMLButtonElement>('#copy-link')!;
 
@@ -32,6 +34,7 @@ function recalculate() {
   renderCostSummary(costSummaryEl, breakdown, state.discountPercent);
 
   const projection = generateProjection(state);
+  renderCharts(chartsEl, breakdown, projection, state.discountPercent);
   renderProjectionTable(projectionTableEl, projection);
 }
 

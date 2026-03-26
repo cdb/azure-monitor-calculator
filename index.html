@@ -32,6 +32,14 @@
       .text-right { text-align: right; }
       .text-left { text-align: left; }
       input[type="range"] { cursor: pointer; }
+
+      /* Responsive: stack on small screens */
+      @media (max-width: 768px) {
+        .d-flex.flex-wrap { gap: 12px !important; }
+        .container-lg { padding: 0 8px; }
+        table { font-size: 0.85em; }
+        table th, table td { padding: 4px 6px !important; }
+      }
     </style>
   </head>
   <body>
@@ -53,6 +61,7 @@
       <div id="retention-config"></div>
       <div id="query-export"></div>
       <div id="cost-summary"></div>
+      <div id="charts"></div>
       <div id="projection-table"></div>
     </div>
 
