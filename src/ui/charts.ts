@@ -22,17 +22,21 @@ export function renderCharts(
       </div>
       <div class="Box-body">
         <div class="d-flex flex-wrap" style="gap: 24px; margin-bottom: 24px;">
-          <div style="flex: 1; min-width: 280px; max-width: 360px; position: relative; height: 300px;">
+          <div style="flex: 1; min-width: 280px; max-width: 360px;">
             <h4 class="f5 mb-2 text-center">Monthly Cost Breakdown</h4>
-            <canvas id="breakdown-chart"></canvas>
+            <div style="position: relative; height: 270px;">
+              <canvas id="breakdown-chart"></canvas>
+            </div>
           </div>
-          <div style="flex: 2; min-width: 400px; position: relative; height: 300px;">
+          <div style="flex: 2; min-width: 400px;">
             <h4 class="f5 mb-2 text-center">Monthly Cost Over Time</h4>
-            <canvas id="monthly-chart"></canvas>
+            <div style="position: relative; height: 270px;">
+              <canvas id="monthly-chart"></canvas>
+            </div>
           </div>
         </div>
-        <div style="position: relative; height: 280px; margin-bottom: 16px;">
-          <h4 class="f5 mb-2 text-center">Cumulative Spend</h4>
+        <h4 class="f5 mb-2 text-center">Cumulative Spend</h4>
+        <div style="position: relative; height: 270px;">
           <canvas id="cumulative-chart"></canvas>
         </div>
       </div>
