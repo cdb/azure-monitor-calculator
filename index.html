@@ -57,12 +57,28 @@
 
     <div class="container-lg pb-4">
       <div id="global-settings"></div>
-      <div id="volume-config"></div>
-      <div id="retention-config"></div>
-      <div id="query-export"></div>
-      <div id="cost-summary"></div>
-      <div id="charts"></div>
-      <div id="projection-table"></div>
+
+      <details open>
+        <summary class="h4 mb-2 py-2" style="cursor: pointer; list-style: revert;">📊 Ingestion</summary>
+        <div id="volume-config"></div>
+      </details>
+
+      <details open>
+        <summary class="h4 mb-2 py-2" style="cursor: pointer; list-style: revert;">🗄️ Retention</summary>
+        <div id="retention-config"></div>
+      </details>
+
+      <details>
+        <summary class="h4 mb-2 py-2" style="cursor: pointer; list-style: revert;">🔍 Query &amp; Export Costs</summary>
+        <div id="query-export"></div>
+      </details>
+
+      <details open>
+        <summary class="h4 mb-2 py-2" style="cursor: pointer; list-style: revert;">💰 Results</summary>
+        <div id="cost-summary"></div>
+        <div id="charts"></div>
+        <div id="projection-table"></div>
+      </details>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

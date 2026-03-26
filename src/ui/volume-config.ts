@@ -4,9 +4,12 @@ import { number as fmtNum } from '../format';
 
 export type StateChangeCallback = (state: CalculatorState) => void;
 
-/**
- * Build the volume configuration panel with plan-split sliders.
- */
+const PLAN_DESCRIPTIONS: Record<string, string> = {
+  analytics: 'Full KQL, alerts, insights, dashboards. Best for data you query frequently.',
+  basic: 'Single-table KQL, alerting, 30-day interactive query. Lower cost for moderate-access data.',
+  auxiliary: 'Cheapest ingestion. Search jobs for older data. Best for compliance and archive.',
+};
+
 export function renderVolumeConfig(
   container: HTMLElement,
   state: CalculatorState,
@@ -37,9 +40,9 @@ export function renderVolumeConfig(
         </div>
 
         <div class="d-flex flex-wrap" style="gap: 24px;">
-          ${renderPlanSlider('auxiliary', 'Auxiliary Logs', state.auxiliaryPercent, '#0969da')}
-          ${renderPlanSlider('basic', 'Basic Logs', state.basicPercent, '#1a7f37')}
-          ${renderPlanSlider('analytics', 'Analytics Logs', state.analyticsPercent, '#8250df')}
+          ${renderPlanSlider('analytics', 'Analytics Logs', state.analyticsPercent, '#8250df', '$2.30/GB PAYG', PLAN_DESCRIPTIONS.analytics)}
+          ${renderPlanSlider('basic', 'Basic Logs', state.basicPercent, '#1a7f37', '$0.50/GB', PLAN_DESCRIPTIONS.basic)}
+          ${renderPlanSlider('auxiliary', 'Auxiliary Logs', state.auxiliaryPercent, '#0969da', '$0.05/GB', PLAN_DESCRIPTIONS.auxiliary)}
         </div>
 
         <div id="plan-split-bar" class="mt-3 mb-2" style="height: 24px; border-radius: 6px; overflow: hidden; display: flex; border: 1px solid var(--borderColor-default, #d0d7de);">
@@ -102,21 +105,20 @@ export function renderVolumeConfig(
     const total = state.totalGbPerDay;
 
     bar.innerHTML = `
-      <div style="width: ${state.auxiliaryPercent}%; background: #0969da; transition: width 0.2s;" title="Auxiliary: ${state.auxiliaryPercent}%"></div>
-      <div style="width: ${state.basicPercent}%; background: #1a7f37; transition: width 0.2s;" title="Basic: ${state.basicPercent}%"></div>
       <div style="width: ${state.analyticsPercent}%; background: #8250df; transition: width 0.2s;" title="Analytics: ${state.analyticsPercent}%"></div>
+      <div style="width: ${state.basicPercent}%; background: #1a7f37; transition: width 0.2s;" title="Basic: ${state.basicPercent}%"></div>
+      <div style="width: ${state.auxiliaryPercent}%; background: #0969da; transition: width 0.2s;" title="Auxiliary: ${state.auxiliaryPercent}%"></div>
     `;
 
     summary.innerHTML = `
-      <span style="color: #0969da;">■</span> Auxiliary: ${formatVolume(total * state.auxiliaryPercent / 100)} (${state.auxiliaryPercent}%)
+      <span style="color: #8250df;">■</span> Analytics: ${formatVolume(total * state.analyticsPercent / 100)} (${state.analyticsPercent}%)
       &nbsp;&nbsp;
       <span style="color: #1a7f37;">■</span> Basic: ${formatVolume(total * state.basicPercent / 100)} (${state.basicPercent}%)
       &nbsp;&nbsp;
-      <span style="color: #8250df;">■</span> Analytics: ${formatVolume(total * state.analyticsPercent / 100)} (${state.analyticsPercent}%)
+      <span style="color: #0969da;">■</span> Auxiliary: ${formatVolume(total * state.auxiliaryPercent / 100)} (${state.auxiliaryPercent}%)
     `;
   }
 
-  // Normalize percentages: when one changes, distribute the remainder proportionally
   function handlePlanChange(changed: 'auxiliary' | 'basic' | 'analytics') {
     const fields = { auxiliary: auxInput, basic: basInput, analytics: anaInput };
     const sliders = { auxiliary: auxSlider, basic: basSlider, analytics: anaSlider };
@@ -135,7 +137,6 @@ export function renderVolumeConfig(
         sliders[k].value = String(newVal);
       });
     } else {
-      // Split evenly
       const each = Math.round(remaining / others.length);
       others.forEach((k, i) => {
         const val = i === 0 ? remaining - each : each;
@@ -149,7 +150,6 @@ export function renderVolumeConfig(
     fields[changed].value = String(changedVal);
     sliders[changed].value = String(changedVal);
 
-    // Fix rounding — ensure they sum to 100
     const sum = state.auxiliaryPercent + state.basicPercent + state.analyticsPercent;
     if (sum !== 100) {
       const diff = 100 - sum;
@@ -163,7 +163,6 @@ export function renderVolumeConfig(
     onChange(state);
   }
 
-  // Wire events
   totalInput.addEventListener('input', () => {
     state.totalGbPerDay = displayToGb(getDisplayValue());
     updateSplitBar();
@@ -171,7 +170,6 @@ export function renderVolumeConfig(
   });
 
   unitSelect.addEventListener('change', () => {
-    // Convert the current GB value to the new display unit
     const currentGb = state.totalGbPerDay;
     totalInput.value = String(gbToDisplay(currentGb));
     totalInput.step = unitSelect.value === 'TB' ? '0.1' : '10';
@@ -198,12 +196,13 @@ export function renderVolumeConfig(
   updateSplitBar();
 }
 
-function renderPlanSlider(id: string, label: string, value: number, color: string): string {
+function renderPlanSlider(id: string, label: string, value: number, color: string, price: string, description: string): string {
   return `
     <div class="form-group" style="min-width: 200px; flex: 1;">
       <div class="form-group-header">
-        <label for="${id}-pct"><span style="color: ${color};">●</span> ${label} %</label>
+        <label for="${id}-pct"><span style="color: ${color};">●</span> ${label} <span class="text-small color-fg-muted">(${price})</span></label>
       </div>
+      <p class="text-small color-fg-muted mb-1" style="margin-top: -4px; line-height: 1.3;">${description}</p>
       <div class="form-group-body d-flex flex-items-center" style="gap: 8px;">
         <input class="form-control input-sm" type="number" id="${id}-pct"
           min="0" max="100" step="1" value="${value}" style="width: 70px;">
