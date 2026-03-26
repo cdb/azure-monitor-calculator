@@ -1,10 +1,8 @@
 import type { CalculatorState } from '../state';
+import { renderUnitInput, wireUnitInput } from './unit-input';
 
 export type StateChangeCallback = (state: CalculatorState) => void;
 
-/**
- * Build the query & export cost inputs panel.
- */
 export function renderQueryExport(
   container: HTMLElement,
   state: CalculatorState,
@@ -21,65 +19,19 @@ export function renderQueryExport(
           These inputs are optional — leave at 0 if not applicable.
         </p>
         <div class="d-flex flex-wrap" style="gap: 24px;">
-          <div class="form-group" style="min-width: 200px;">
-            <div class="form-group-header">
-              <label for="query-ba">Basic/Auxiliary query (GB scanned/month)</label>
-            </div>
-            <div class="form-group-body">
-              <input class="form-control input-sm" type="number" id="query-ba"
-                min="0" step="100" value="${state.queryBasicAuxGbPerMonth}" style="width: 140px;">
-            </div>
-          </div>
-
-          <div class="form-group" style="min-width: 200px;">
-            <div class="form-group-header">
-              <label for="search-jobs">Search jobs (GB scanned/month)</label>
-            </div>
-            <div class="form-group-body">
-              <input class="form-control input-sm" type="number" id="search-jobs"
-                min="0" step="100" value="${state.searchJobsGbPerMonth}" style="width: 140px;">
-            </div>
-          </div>
-
-          <div class="form-group" style="min-width: 200px;">
-            <div class="form-group-header">
-              <label for="data-export">Data export (GB/month)</label>
-            </div>
-            <div class="form-group-body">
-              <input class="form-control input-sm" type="number" id="data-export"
-                min="0" step="100" value="${state.dataExportGbPerMonth}" style="width: 140px;">
-            </div>
-          </div>
-
-          <div class="form-group" style="min-width: 200px;">
-            <div class="form-group-header">
-              <label for="platform-logs">Platform logs to Storage/EventHub (GB/month)</label>
-            </div>
-            <div class="form-group-body">
-              <input class="form-control input-sm" type="number" id="platform-logs"
-                min="0" step="100" value="${state.platformLogsGbPerMonth}" style="width: 140px;">
-            </div>
-          </div>
+          ${renderUnitInput('query-ba', 'Basic/Auxiliary query scanned', state.queryBasicAuxGbPerMonth)}
+          ${renderUnitInput('search-jobs', 'Search jobs scanned', state.searchJobsGbPerMonth)}
+          ${renderUnitInput('data-export', 'Data export', state.dataExportGbPerMonth)}
+          ${renderUnitInput('platform-logs', 'Platform logs to Storage/EventHub', state.platformLogsGbPerMonth)}
         </div>
       </div>
     </div>
   `;
 
-  const queryBa = container.querySelector('#query-ba') as HTMLInputElement;
-  const searchJobs = container.querySelector('#search-jobs') as HTMLInputElement;
-  const dataExport = container.querySelector('#data-export') as HTMLInputElement;
-  const platformLogs = container.querySelector('#platform-logs') as HTMLInputElement;
+  const sync = () => onChange(state);
 
-  const sync = () => {
-    state.queryBasicAuxGbPerMonth = parseFloat(queryBa.value) || 0;
-    state.searchJobsGbPerMonth = parseFloat(searchJobs.value) || 0;
-    state.dataExportGbPerMonth = parseFloat(dataExport.value) || 0;
-    state.platformLogsGbPerMonth = parseFloat(platformLogs.value) || 0;
-    onChange(state);
-  };
-
-  queryBa.addEventListener('input', sync);
-  searchJobs.addEventListener('input', sync);
-  dataExport.addEventListener('input', sync);
-  platformLogs.addEventListener('input', sync);
+  wireUnitInput(container, 'query-ba', (gb) => { state.queryBasicAuxGbPerMonth = gb; sync(); });
+  wireUnitInput(container, 'search-jobs', (gb) => { state.searchJobsGbPerMonth = gb; sync(); });
+  wireUnitInput(container, 'data-export', (gb) => { state.dataExportGbPerMonth = gb; sync(); });
+  wireUnitInput(container, 'platform-logs', (gb) => { state.platformLogsGbPerMonth = gb; sync(); });
 }

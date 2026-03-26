@@ -2,6 +2,8 @@ import type { CalculatorState } from '../state';
 import { PRICING } from '../pricing-data';
 import { number as fmtNum } from '../format';
 import { findOptimalTier } from '../engine';
+import { autoUnit, gbToDisplay, displayToGb, stepForUnit } from './unit-input';
+import type { Unit } from './unit-input';
 
 export type StateChangeCallback = (state: CalculatorState) => void;
 
@@ -30,12 +32,13 @@ export function renderVolumeConfig(
           </div>
           <div class="form-group-body d-flex flex-items-center" style="gap: 8px;">
             <input class="form-control" type="number" id="total-volume"
-              min="0" step="${state.totalGbPerDay >= 1000 ? '0.1' : '10'}"
-              value="${state.totalGbPerDay >= 1000 ? (state.totalGbPerDay / 1000) : state.totalGbPerDay}"
+              min="0" step="${stepForUnit(autoUnit(state.totalGbPerDay))}"
+              value="${gbToDisplay(state.totalGbPerDay, autoUnit(state.totalGbPerDay))}"
               style="max-width: 160px;">
-            <select class="form-select input-sm" id="volume-unit" style="width: 90px;">
-              <option value="GB" ${state.totalGbPerDay < 1000 ? 'selected' : ''}>GB/day</option>
-              <option value="TB" ${state.totalGbPerDay >= 1000 ? 'selected' : ''}>TB/day</option>
+            <select class="form-select input-sm" id="volume-unit" style="width: 100px;">
+              <option value="GB" ${autoUnit(state.totalGbPerDay) === 'GB' ? 'selected' : ''}>GB/day</option>
+              <option value="TB" ${autoUnit(state.totalGbPerDay) === 'TB' ? 'selected' : ''}>TB/day</option>
+              <option value="PB" ${autoUnit(state.totalGbPerDay) === 'PB' ? 'selected' : ''}>PB/day</option>
             </select>
           </div>
         </div>
@@ -85,19 +88,13 @@ export function renderVolumeConfig(
     return parseFloat(totalInput.value) || 0;
   }
 
-  function displayToGb(displayVal: number): number {
-    return unitSelect.value === 'TB' ? displayVal * 1000 : displayVal;
-  }
-
-  function gbToDisplay(gb: number): number {
-    return unitSelect.value === 'TB' ? gb / 1000 : gb;
+  function currentUnit(): Unit {
+    return unitSelect.value as Unit;
   }
 
   function formatVolume(gb: number): string {
-    if (unitSelect.value === 'TB') {
-      return `${fmtNum(gb / 1000, 2)} TB/day`;
-    }
-    return `${fmtNum(gb)} GB/day`;
+    const unit = currentUnit();
+    return `${fmtNum(gbToDisplay(gb, unit), unit === 'GB' ? 1 : 2)} ${unit}/day`;
   }
 
   function updateSplitBar() {
@@ -187,16 +184,17 @@ export function renderVolumeConfig(
   }
 
   totalInput.addEventListener('input', () => {
-    state.totalGbPerDay = displayToGb(getDisplayValue());
+    state.totalGbPerDay = displayToGb(getDisplayValue(), currentUnit());
     updateSplitBar();
     updateEffectivePrice();
     onChange(state);
   });
 
   unitSelect.addEventListener('change', () => {
-    const currentGb = state.totalGbPerDay;
-    totalInput.value = String(gbToDisplay(currentGb));
-    totalInput.step = unitSelect.value === 'TB' ? '0.1' : '10';
+    const gb = state.totalGbPerDay;
+    const unit = currentUnit();
+    totalInput.value = String(gbToDisplay(gb, unit));
+    totalInput.step = stepForUnit(unit);
     updateSplitBar();
   });
 
