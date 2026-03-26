@@ -84,6 +84,20 @@ export function renderGlobalSettings(
               </select>
             </div>
           </div>
+
+          <div class="form-group" style="min-width: 200px;">
+            <div class="form-group-header">
+              <label for="billable-ratio">Billable Volume Ratio %</label>
+            </div>
+            <div class="form-group-body d-flex flex-items-center" style="gap: 8px;">
+              <input class="form-control input-sm" type="number" id="billable-ratio"
+                min="1" max="100" step="1" value="${state.billableRatio}"
+                style="width: 70px;">
+              <input type="range" id="billable-ratio-slider" min="1" max="100" step="1"
+                value="${state.billableRatio}" style="flex: 1;">
+            </div>
+            <p class="note">Azure bills ~75% of raw JSON payload size (<a href="https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#data-size-calculation" target="_blank">details</a>). Set to 100% if your volume is already billable GB.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -95,11 +109,14 @@ export function renderGlobalSettings(
   const growthInput = container.querySelector('#growth') as HTMLInputElement;
   const growthSlider = container.querySelector('#growth-slider') as HTMLInputElement;
   const periodSelect = container.querySelector('#period') as HTMLSelectElement;
+  const billableInput = container.querySelector('#billable-ratio') as HTMLInputElement;
+  const billableSlider = container.querySelector('#billable-ratio-slider') as HTMLInputElement;
 
   const sync = () => {
     state.discountPercent = parseFloat(discountInput.value) || 0;
     state.growthPercent = parseFloat(growthInput.value) || 0;
     state.projectionMonths = parseInt(periodSelect.value) || 12;
+    state.billableRatio = parseFloat(billableInput.value) || 75;
     onChange(state);
   };
 
@@ -111,5 +128,7 @@ export function renderGlobalSettings(
   discountSlider.addEventListener('input', () => { discountInput.value = discountSlider.value; sync(); });
   growthInput.addEventListener('input', () => { growthSlider.value = growthInput.value; sync(); });
   growthSlider.addEventListener('input', () => { growthInput.value = growthSlider.value; sync(); });
+  billableInput.addEventListener('input', () => { billableSlider.value = billableInput.value; sync(); });
+  billableSlider.addEventListener('input', () => { billableInput.value = billableSlider.value; sync(); });
   periodSelect.addEventListener('change', sync);
 }

@@ -4,6 +4,7 @@ export interface CalculatorState {
   discountPercent: number;       // 0–100
   growthPercent: number;         // month-over-month growth rate
   projectionMonths: number;      // 12, 24, or 36
+  billableRatio: number;         // 0–100, percentage of raw volume that is billable (default 75%)
 
   // Volume
   totalGbPerDay: number;
@@ -31,6 +32,7 @@ export const DEFAULT_STATE: CalculatorState = {
   discountPercent: 0,
   growthPercent: 0,
   projectionMonths: 12,
+  billableRatio: 75,
 
   totalGbPerDay: 1000,
   auxiliaryPercent: 0,

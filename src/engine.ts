@@ -90,7 +90,10 @@ export function calculateMonthlyCost(
   state: CalculatorState,
   volumeOverrideGbPerDay?: number,
 ): MonthlyCostBreakdown {
-  const totalGbPerDay = volumeOverrideGbPerDay ?? state.totalGbPerDay;
+  const rawGbPerDay = volumeOverrideGbPerDay ?? state.totalGbPerDay;
+  // Apply billable ratio: Azure bills on a reduced representation (~75% of raw JSON payload)
+  const billableRatio = (state.billableRatio ?? 100) / 100;
+  const totalGbPerDay = rawGbPerDay * billableRatio;
   const auxGbPerDay = totalGbPerDay * (state.auxiliaryPercent / 100);
   const basicGbPerDay = totalGbPerDay * (state.basicPercent / 100);
   const analyticsGbPerDay = totalGbPerDay * (state.analyticsPercent / 100);

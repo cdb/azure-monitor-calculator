@@ -5,6 +5,7 @@ const PARAM_MAP: Record<keyof CalculatorState, string> = {
   discountPercent: 'disc',
   growthPercent: 'grow',
   projectionMonths: 'period',
+  billableRatio: 'bill_ratio',
   totalGbPerDay: 'vol',
   auxiliaryPercent: 'aux',
   basicPercent: 'bas',
