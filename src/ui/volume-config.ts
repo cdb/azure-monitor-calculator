@@ -45,7 +45,6 @@ export function renderVolumeConfig(
           ${renderPlanSlider('basic', 'Basic Logs', state.basicPercent, '#1a7f37', PLAN_DESCRIPTIONS.basic)}
           ${renderPlanSlider('auxiliary', 'Auxiliary Logs', state.auxiliaryPercent, '#0969da', PLAN_DESCRIPTIONS.auxiliary)}
         </div>
-        <p class="text-small color-fg-muted mt-1" id="analytics-effective-price"></p>
 
         <div id="plan-split-bar" class="mt-3 mb-2" style="height: 24px; border-radius: 6px; overflow: hidden; display: flex; border: 1px solid var(--borderColor-default, #d0d7de);">
         </div>
@@ -122,12 +121,12 @@ export function renderVolumeConfig(
   }
 
   function updateEffectivePrice() {
-    const el = container.querySelector('#analytics-effective-price') as HTMLElement;
+    const el = container.querySelector('#analytics-price-label') as HTMLElement;
     if (!el) return;
     const analyticsGbPerDay = state.totalGbPerDay * (state.analyticsPercent / 100);
 
     if (state.commitmentTier === 'payg' || analyticsGbPerDay <= 0) {
-      el.textContent = `Analytics effective rate: $${PRICING.ingestion.analytics.payg.perGb.toFixed(2)}/GB (Pay-As-You-Go)`;
+      el.textContent = `($${PRICING.ingestion.analytics.payg.perGb.toFixed(2)}/GB PAYG)`;
       return;
     }
 
@@ -136,9 +135,9 @@ export function renderVolumeConfig(
       : PRICING.ingestion.analytics.commitmentTiers.find(t => t.gbPerDay === state.commitmentTier) ?? null;
 
     if (tier) {
-      el.textContent = `Analytics effective rate: ~$${tier.effectivePerGb.toFixed(3)}/GB (${fmtNum(tier.gbPerDay, 0)} GB/day tier, ${tier.savingsPercent}% savings vs PAYG)`;
+      el.textContent = `(~$${tier.effectivePerGb.toFixed(2)}/GB · ${fmtNum(tier.gbPerDay, 0)} GB/day tier · ${tier.savingsPercent}% off)`;
     } else {
-      el.textContent = `Analytics effective rate: $${PRICING.ingestion.analytics.payg.perGb.toFixed(2)}/GB (Pay-As-You-Go — volume too low for commitment tier savings)`;
+      el.textContent = `($${PRICING.ingestion.analytics.payg.perGb.toFixed(2)}/GB PAYG)`;
     }
   }
 
@@ -230,10 +229,11 @@ function renderPlanSlider(id: string, label: string, value: number, color: strin
     auxiliary: '$0.05/GB',
   };
   const price = prices[id] || '';
+  const priceId = id === 'analytics' ? ' id="analytics-price-label"' : '';
   return `
     <div class="form-group" style="min-width: 200px; flex: 1;">
       <div class="form-group-header">
-        <label for="${id}-pct"><span style="color: ${color};">●</span> ${label} <span class="text-small color-fg-muted">(${price})</span></label>
+        <label for="${id}-pct"><span style="color: ${color};">●</span> ${label} <span class="text-small color-fg-muted"${priceId}>(${price})</span></label>
       </div>
       <p class="text-small color-fg-muted mb-1" style="margin-top: -4px; line-height: 1.3;">${description}</p>
       <div class="form-group-body d-flex flex-items-center" style="gap: 8px;">
