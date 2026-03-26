@@ -1,19 +1,31 @@
 import type { CalculatorState } from '../state';
-import { REGION_LABELS, setRegion } from '../pricing-data';
-import type { RegionId } from '../pricing-data';
+import { REGIONS } from '../regions';
 
 export type StateChangeCallback = (state: CalculatorState) => void;
-export type RegionChangeCallback = (regionId: RegionId) => void;
 
 export function renderGlobalSettings(
   container: HTMLElement,
   state: CalculatorState,
-  currentRegion: RegionId,
+  currentRegion: string,
   onChange: StateChangeCallback,
-  onRegionChange: RegionChangeCallback,
+  onRegionChange: (regionId: string) => void,
 ): void {
-  const regionOptions = Object.entries(REGION_LABELS)
-    .map(([id, label]) => `<option value="${id}" ${id === currentRegion ? 'selected' : ''}>${label}</option>`)
+  const groups: Record<string, string> = {
+    primary: 'US Regions',
+    active: 'Your Active Regions',
+    other: 'All Regions',
+  };
+
+  const optgroups = (['primary', 'active', 'other'] as const)
+    .map((g) => {
+      const opts = REGIONS.filter((r) => r.group === g)
+        .map(
+          (r) =>
+            `<option value="${r.id}" ${r.id === currentRegion ? 'selected' : ''}>${r.label}</option>`,
+        )
+        .join('');
+      return `<optgroup label="${groups[g]}">${opts}</optgroup>`;
+    })
     .join('');
 
   container.innerHTML = `
@@ -23,14 +35,15 @@ export function renderGlobalSettings(
       </div>
       <div class="Box-body">
         <div class="d-flex flex-wrap" style="gap: 24px;">
-          <div class="form-group" style="min-width: 140px;">
+          <div class="form-group" style="min-width: 180px;">
             <div class="form-group-header">
               <label for="region">Azure Region</label>
             </div>
             <div class="form-group-body">
               <select class="form-select input-sm" id="region">
-                ${regionOptions}
+                ${optgroups}
               </select>
+              <span id="region-loading" class="text-small color-fg-muted" style="display:none;">Loading prices…</span>
             </div>
           </div>
 
@@ -78,6 +91,7 @@ export function renderGlobalSettings(
   `;
 
   const regionSelect = container.querySelector('#region') as HTMLSelectElement;
+  const regionLoading = container.querySelector('#region-loading') as HTMLElement;
   const discountInput = container.querySelector('#discount') as HTMLInputElement;
   const discountSlider = container.querySelector('#discount-slider') as HTMLInputElement;
   const growthInput = container.querySelector('#growth') as HTMLInputElement;
@@ -92,10 +106,17 @@ export function renderGlobalSettings(
   };
 
   regionSelect.addEventListener('change', () => {
-    const regionId = regionSelect.value as RegionId;
-    setRegion(regionId);
+    const regionId = regionSelect.value;
+    regionLoading.style.display = '';
+    regionSelect.disabled = true;
     onRegionChange(regionId);
   });
+
+  // Expose a way for main.ts to hide the loading indicator after fetch completes
+  (container as any).__hideRegionLoading = () => {
+    regionLoading.style.display = 'none';
+    regionSelect.disabled = false;
+  };
 
   discountInput.addEventListener('input', () => { discountSlider.value = discountInput.value; sync(); });
   discountSlider.addEventListener('input', () => { discountInput.value = discountSlider.value; sync(); });

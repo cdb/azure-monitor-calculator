@@ -1,0 +1,72 @@
+export interface RegionInfo {
+  id: string;
+  label: string;
+  group: 'primary' | 'active' | 'other';
+}
+
+export const REGIONS: RegionInfo[] = [
+  // Primary US regions
+  { id: 'eastus', label: 'East US', group: 'primary' },
+  { id: 'eastus2', label: 'East US 2', group: 'primary' },
+  { id: 'centralus', label: 'Central US', group: 'primary' },
+  { id: 'westus2', label: 'West US 2', group: 'primary' },
+  { id: 'westus3', label: 'West US 3', group: 'primary' },
+  { id: 'northcentralus', label: 'North Central US', group: 'primary' },
+  { id: 'southcentralus', label: 'South Central US', group: 'primary' },
+  { id: 'westcentralus', label: 'West Central US', group: 'primary' },
+  { id: 'westus', label: 'West US', group: 'primary' },
+
+  // Active regions (where user has data)
+  { id: 'australiaeast', label: 'Australia East', group: 'active' },
+  { id: 'canadacentral', label: 'Canada Central', group: 'active' },
+  { id: 'japanwest', label: 'Japan West', group: 'active' },
+  { id: 'koreacentral', label: 'Korea Central', group: 'active' },
+  { id: 'swedencentral', label: 'Sweden Central', group: 'active' },
+  { id: 'westeurope', label: 'West Europe', group: 'active' },
+
+  // All other regions (alphabetical)
+  { id: 'australiacentral', label: 'Australia Central', group: 'other' },
+  { id: 'australiacentral2', label: 'Australia Central 2', group: 'other' },
+  { id: 'australiasoutheast', label: 'Australia Southeast', group: 'other' },
+  { id: 'austriaeast', label: 'Austria East', group: 'other' },
+  { id: 'belgiumcentral', label: 'Belgium Central', group: 'other' },
+  { id: 'brazilsouth', label: 'Brazil South', group: 'other' },
+  { id: 'brazilsoutheast', label: 'Brazil Southeast', group: 'other' },
+  { id: 'canadaeast', label: 'Canada East', group: 'other' },
+  { id: 'centralindia', label: 'Central India', group: 'other' },
+  { id: 'chilecentral', label: 'Chile Central', group: 'other' },
+  { id: 'denmarkeast', label: 'Denmark East', group: 'other' },
+  { id: 'eastasia', label: 'East Asia', group: 'other' },
+  { id: 'francecentral', label: 'France Central', group: 'other' },
+  { id: 'francesouth', label: 'France South', group: 'other' },
+  { id: 'germanynorth', label: 'Germany North', group: 'other' },
+  { id: 'germanywestcentral', label: 'Germany West Central', group: 'other' },
+  { id: 'indonesiacentral', label: 'Indonesia Central', group: 'other' },
+  { id: 'israelcentral', label: 'Israel Central', group: 'other' },
+  { id: 'israelnorthwest', label: 'Israel Northwest', group: 'other' },
+  { id: 'italynorth', label: 'Italy North', group: 'other' },
+  { id: 'japaneast', label: 'Japan East', group: 'other' },
+  { id: 'jioindiacentral', label: 'Jio India Central', group: 'other' },
+  { id: 'koreasouth', label: 'Korea South', group: 'other' },
+  { id: 'malaysiawest', label: 'Malaysia West', group: 'other' },
+  { id: 'mexicocentral', label: 'Mexico Central', group: 'other' },
+  { id: 'newzealandnorth', label: 'New Zealand North', group: 'other' },
+  { id: 'northeurope', label: 'North Europe', group: 'other' },
+  { id: 'norwayeast', label: 'Norway East', group: 'other' },
+  { id: 'norwaywest', label: 'Norway West', group: 'other' },
+  { id: 'polandcentral', label: 'Poland Central', group: 'other' },
+  { id: 'qatarcentral', label: 'Qatar Central', group: 'other' },
+  { id: 'southafricanorth', label: 'South Africa North', group: 'other' },
+  { id: 'southafricawest', label: 'South Africa West', group: 'other' },
+  { id: 'southeastasia', label: 'Southeast Asia', group: 'other' },
+  { id: 'southindia', label: 'South India', group: 'other' },
+  { id: 'spaincentral', label: 'Spain Central', group: 'other' },
+  { id: 'swedensouth', label: 'Sweden South', group: 'other' },
+  { id: 'switzerlandnorth', label: 'Switzerland North', group: 'other' },
+  { id: 'switzerlandwest', label: 'Switzerland West', group: 'other' },
+  { id: 'uaecentral', label: 'UAE Central', group: 'other' },
+  { id: 'uaenorth', label: 'UAE North', group: 'other' },
+  { id: 'uksouth', label: 'UK South', group: 'other' },
+  { id: 'ukwest', label: 'UK West', group: 'other' },
+  { id: 'westindia', label: 'West India', group: 'other' },
+];
