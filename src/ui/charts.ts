@@ -81,11 +81,34 @@ function renderBreakdownChart(
       plugins: {
         legend: {
           position: 'bottom',
-          labels: { font: { size: 11 }, padding: 8 },
+          labels: {
+            font: { size: 11 },
+            padding: 8,
+            generateLabels: (chart) => {
+              const data = chart.data;
+              const dataset = data.datasets[0];
+              const total = (dataset.data as number[]).reduce((a, b) => a + b, 0);
+              return (data.labels as string[]).map((label, i) => {
+                const value = dataset.data[i] as number;
+                const pct = total > 0 ? (value / total * 100).toFixed(1) : '0';
+                return {
+                  text: `${label} (${pct}%)`,
+                  fillStyle: (dataset.backgroundColor as string[])[i],
+                  strokeStyle: '#ffffff',
+                  lineWidth: 2,
+                  index: i,
+                };
+              });
+            },
+          },
         },
         tooltip: {
           callbacks: {
-            label: (ctx) => `${ctx.label}: ${currency(ctx.parsed)}`,
+            label: (ctx) => {
+              const total = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
+              const pct = total > 0 ? (ctx.parsed / total * 100).toFixed(1) : '0';
+              return `${ctx.label}: ${currency(ctx.parsed)} (${pct}%)`;
+            },
           },
         },
       },
