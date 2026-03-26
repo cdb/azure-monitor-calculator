@@ -40,7 +40,7 @@ export function renderRetentionConfig(
               <label class="text-small d-block mb-1">
                 Extra interactive retention:
                 <strong id="ret-ana-int-label">${state.retentionAnalyticsInteractiveDays} days</strong>
-                <span class="color-fg-muted">(total ${includedAnalytics + state.retentionAnalyticsInteractiveDays} days)</span>
+                <span class="color-fg-muted" id="ret-ana-int-context">(total ${includedAnalytics + state.retentionAnalyticsInteractiveDays} days)</span>
               </label>
               <input type="range" id="ret-ana-int" min="0" max="${730 - includedAnalytics}" step="1"
                 value="${state.retentionAnalyticsInteractiveDays}"
@@ -54,7 +54,7 @@ export function renderRetentionConfig(
               <label class="text-small d-block mb-1">
                 Long-term retention:
                 <strong id="ret-ana-lt-label">${anaLtMonths} months</strong>
-                <span class="color-fg-muted">(${(anaLtMonths / 12).toFixed(1)} years)</span>
+                <span class="color-fg-muted" id="ret-ana-lt-context">(${(anaLtMonths / 12).toFixed(1)} years)</span>
               </label>
               <input type="range" id="ret-ana-lt" min="0" max="144" step="1"
                 value="${anaLtMonths}"
@@ -74,7 +74,7 @@ export function renderRetentionConfig(
               <label class="text-small d-block mb-1">
                 Long-term retention:
                 <strong id="ret-bas-lt-label">${basLtMonths} months</strong>
-                <span class="color-fg-muted">(${(basLtMonths / 12).toFixed(1)} years)</span>
+                <span class="color-fg-muted" id="ret-bas-lt-context">(${(basLtMonths / 12).toFixed(1)} years)</span>
               </label>
               <input type="range" id="ret-bas-lt" min="0" max="144" step="1"
                 value="${basLtMonths}"
@@ -94,7 +94,7 @@ export function renderRetentionConfig(
               <label class="text-small d-block mb-1">
                 Long-term retention:
                 <strong id="ret-aux-lt-label">${auxLtMonths} months</strong>
-                <span class="color-fg-muted">(${(auxLtMonths / 12).toFixed(1)} years)</span>
+                <span class="color-fg-muted" id="ret-aux-lt-context">(${(auxLtMonths / 12).toFixed(1)} years)</span>
               </label>
               <input type="range" id="ret-aux-lt" min="0" max="144" step="1"
                 value="${auxLtMonths}"
@@ -110,33 +110,35 @@ export function renderRetentionConfig(
   `;
 
   const retAnaInt = container.querySelector('#ret-ana-int') as HTMLInputElement;
-  const retAnaIntLabel = container.querySelector('#ret-ana-int-label') as HTMLElement;
   const retAnaLt = container.querySelector('#ret-ana-lt') as HTMLInputElement;
-  const retAnaLtLabel = container.querySelector('#ret-ana-lt-label') as HTMLElement;
   const retBasLt = container.querySelector('#ret-bas-lt') as HTMLInputElement;
-  const retBasLtLabel = container.querySelector('#ret-bas-lt-label') as HTMLElement;
   const retAuxLt = container.querySelector('#ret-aux-lt') as HTMLInputElement;
-  const retAuxLtLabel = container.querySelector('#ret-aux-lt-label') as HTMLElement;
 
   function updateLabels() {
+    // Re-query labels each time since we don't replace innerHTML
     const intDays = parseInt(retAnaInt.value) || 0;
-    retAnaIntLabel.parentElement!.innerHTML = `
-      Extra interactive retention:
-      <strong id="ret-ana-int-label">${intDays} days</strong>
-      <span class="color-fg-muted">(total ${includedAnalytics + intDays} days)</span>
-    `;
+    const intLabel = container.querySelector('#ret-ana-int-label') as HTMLElement;
+    const intContext = container.querySelector('#ret-ana-int-context') as HTMLElement;
+    if (intLabel) intLabel.textContent = `${intDays} days`;
+    if (intContext) intContext.textContent = `(total ${includedAnalytics + intDays} days)`;
 
     const anaMonths = parseInt(retAnaLt.value) || 0;
-    retAnaLtLabel.textContent = `${anaMonths} months`;
-    retAnaLtLabel.parentElement!.querySelector('.color-fg-muted')!.textContent = `(${(anaMonths / 12).toFixed(1)} years)`;
+    const anaLabel = container.querySelector('#ret-ana-lt-label') as HTMLElement;
+    const anaContext = container.querySelector('#ret-ana-lt-context') as HTMLElement;
+    if (anaLabel) anaLabel.textContent = `${anaMonths} months`;
+    if (anaContext) anaContext.textContent = `(${(anaMonths / 12).toFixed(1)} years)`;
 
     const basMonths = parseInt(retBasLt.value) || 0;
-    retBasLtLabel.textContent = `${basMonths} months`;
-    retBasLtLabel.parentElement!.querySelector('.color-fg-muted')!.textContent = `(${(basMonths / 12).toFixed(1)} years)`;
+    const basLabel = container.querySelector('#ret-bas-lt-label') as HTMLElement;
+    const basContext = container.querySelector('#ret-bas-lt-context') as HTMLElement;
+    if (basLabel) basLabel.textContent = `${basMonths} months`;
+    if (basContext) basContext.textContent = `(${(basMonths / 12).toFixed(1)} years)`;
 
     const auxMonths = parseInt(retAuxLt.value) || 0;
-    retAuxLtLabel.textContent = `${auxMonths} months`;
-    retAuxLtLabel.parentElement!.querySelector('.color-fg-muted')!.textContent = `(${(auxMonths / 12).toFixed(1)} years)`;
+    const auxLabel = container.querySelector('#ret-aux-lt-label') as HTMLElement;
+    const auxContext = container.querySelector('#ret-aux-lt-context') as HTMLElement;
+    if (auxLabel) auxLabel.textContent = `${auxMonths} months`;
+    if (auxContext) auxContext.textContent = `(${(auxMonths / 12).toFixed(1)} years)`;
   }
 
   const sync = () => {

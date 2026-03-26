@@ -24,13 +24,13 @@ export function renderCharts(
       </div>
       <div class="Box-body">
         <div class="d-flex flex-wrap" style="gap: 24px;">
-          <div style="flex: 1; min-width: 300px; max-width: 400px;">
+          <div style="flex: 1; min-width: 280px; max-width: 360px; position: relative; height: 300px;">
             <h4 class="f5 mb-2 text-center">Monthly Cost Breakdown</h4>
-            <canvas id="breakdown-chart" height="250"></canvas>
+            <canvas id="breakdown-chart"></canvas>
           </div>
-          <div style="flex: 2; min-width: 400px;">
+          <div style="flex: 2; min-width: 400px; position: relative; height: 300px;">
             <h4 class="f5 mb-2 text-center">Cost Projection Over Time</h4>
-            <canvas id="projection-chart" height="250"></canvas>
+            <canvas id="projection-chart"></canvas>
           </div>
         </div>
       </div>
@@ -158,6 +158,7 @@ function renderProjectionChart(
         y: {
           type: 'linear',
           position: 'left',
+          beginAtZero: true,
           title: { display: true, text: 'Monthly Cost ($)' },
           ticks: {
             callback: (value) => `$${Number(value).toLocaleString()}`,
@@ -166,6 +167,7 @@ function renderProjectionChart(
         y1: {
           type: 'linear',
           position: 'right',
+          beginAtZero: true,
           title: { display: true, text: 'Cumulative ($)' },
           ticks: {
             callback: (value) => `$${Number(value).toLocaleString()}`,
