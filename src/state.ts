@@ -4,7 +4,6 @@ export interface CalculatorState {
   discountPercent: number;       // 0–100
   growthPercent: number;         // month-over-month growth rate
   projectionMonths: number;      // 12, 24, or 36
-  sentinelEnabled: boolean;
 
   // Volume
   totalGbPerDay: number;
@@ -32,7 +31,6 @@ export const DEFAULT_STATE: CalculatorState = {
   discountPercent: 0,
   growthPercent: 0,
   projectionMonths: 12,
-  sentinelEnabled: false,
 
   totalGbPerDay: 1000,
   auxiliaryPercent: 0,

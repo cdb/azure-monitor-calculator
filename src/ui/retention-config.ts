@@ -8,9 +8,7 @@ export function renderRetentionConfig(
   state: CalculatorState,
   onChange: StateChangeCallback,
 ): void {
-  const includedAnalytics = state.sentinelEnabled
-    ? PRICING.retention.included.analyticsSentinelDays
-    : PRICING.retention.included.analyticsDays;
+  const includedAnalytics = PRICING.retention.included.analyticsDays;
   const includedBasicDays = PRICING.retention.included.basicDays;
   const includedAuxDays = PRICING.retention.included.auxiliaryDays;
 

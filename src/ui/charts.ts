@@ -14,6 +14,8 @@ export function renderCharts(
   breakdown: MonthlyCostBreakdown,
   projection: ProjectionResult,
   discountPercent: number,
+  _breakdownB?: MonthlyCostBreakdown,
+  projectionB?: ProjectionResult,
 ): void {
   container.innerHTML = `
     <div class="Box mb-3">
@@ -44,8 +46,8 @@ export function renderCharts(
   `;
 
   renderBreakdownChart(container, breakdown, discountPercent);
-  renderMonthlyChart(container, projection);
-  renderCumulativeChart(container, projection);
+  renderMonthlyChart(container, projection, projectionB);
+  renderCumulativeChart(container, projection, projectionB);
 }
 
 function renderBreakdownChart(
@@ -123,6 +125,7 @@ function renderBreakdownChart(
 function renderMonthlyChart(
   container: HTMLElement,
   projection: ProjectionResult,
+  projectionB?: ProjectionResult,
 ): void {
   const canvas = container.querySelector('#monthly-chart') as HTMLCanvasElement;
   if (!canvas) return;
@@ -132,26 +135,35 @@ function renderMonthlyChart(
   const labels = projection.months.map(m => m.label);
   const monthlyCosts = projection.months.map(m => Math.round(m.breakdown.total * 100) / 100);
 
+  const datasets: any[] = [{
+    label: projectionB ? 'Scenario A' : 'Monthly Cost',
+    data: monthlyCosts,
+    backgroundColor: 'rgba(130, 80, 223, 0.6)',
+    borderColor: '#8250df',
+    borderWidth: 1,
+  }];
+
+  if (projectionB) {
+    datasets.push({
+      label: 'Scenario B',
+      data: projectionB.months.map(m => Math.round(m.breakdown.total * 100) / 100),
+      backgroundColor: 'rgba(191, 135, 0, 0.5)',
+      borderColor: '#bf8700',
+      borderWidth: 1,
+    });
+  }
+
   monthlyChart = new Chart(canvas, {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Monthly Cost',
-        data: monthlyCosts,
-        backgroundColor: 'rgba(130, 80, 223, 0.6)',
-        borderColor: '#8250df',
-        borderWidth: 1,
-      }],
-    },
+    data: { labels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: { display: !!projectionB },
         tooltip: {
           callbacks: {
-            label: (ctx) => `Monthly Cost: ${currency(ctx.parsed.y ?? 0)}`,
+            label: (ctx) => `${ctx.dataset.label}: ${currency(ctx.parsed.y ?? 0)}`,
           },
         },
       },
@@ -174,6 +186,7 @@ function renderMonthlyChart(
 function renderCumulativeChart(
   container: HTMLElement,
   projection: ProjectionResult,
+  projectionB?: ProjectionResult,
 ): void {
   const canvas = container.querySelector('#cumulative-chart') as HTMLCanvasElement;
   if (!canvas) return;
@@ -183,28 +196,39 @@ function renderCumulativeChart(
   const labels = projection.months.map(m => m.label);
   const cumulativeCosts = projection.months.map(m => Math.round(m.cumulativeTotal * 100) / 100);
 
+  const datasets: any[] = [{
+    label: projectionB ? 'Scenario A' : 'Cumulative Spend',
+    data: cumulativeCosts,
+    borderColor: '#0969da',
+    backgroundColor: 'rgba(9, 105, 218, 0.1)',
+    fill: true,
+    tension: 0.3,
+    pointRadius: 2,
+  }];
+
+  if (projectionB) {
+    datasets.push({
+      label: 'Scenario B',
+      data: projectionB.months.map(m => Math.round(m.cumulativeTotal * 100) / 100),
+      borderColor: '#bf8700',
+      backgroundColor: 'rgba(191, 135, 0, 0.1)',
+      fill: true,
+      tension: 0.3,
+      pointRadius: 2,
+    });
+  }
+
   cumulativeChart = new Chart(canvas, {
     type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Cumulative Spend',
-        data: cumulativeCosts,
-        borderColor: '#0969da',
-        backgroundColor: 'rgba(9, 105, 218, 0.1)',
-        fill: true,
-        tension: 0.3,
-        pointRadius: 2,
-      }],
-    },
+    data: { labels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: { display: !!projectionB },
         tooltip: {
           callbacks: {
-            label: (ctx) => `Cumulative: ${currency(ctx.parsed.y ?? 0)}`,
+            label: (ctx) => `${ctx.dataset.label}: ${currency(ctx.parsed.y ?? 0)}`,
           },
         },
       },

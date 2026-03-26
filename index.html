@@ -51,7 +51,12 @@
         <div class="d-flex flex-items-center" style="gap: 12px;">
           <div id="sticky-total" class="text-right" style="line-height: 1.2;">
             <span class="text-small color-fg-muted">Monthly cost</span><br>
-            <strong class="f3 text-mono" id="sticky-total-value">—</strong>
+            <span class="d-flex flex-items-center" style="gap: 8px;">
+              <strong class="f3 text-mono" id="sticky-total-value">—</strong>
+              <span id="sticky-total-b" style="display: none; color: #bf8700;">
+                vs <strong class="f4 text-mono" id="sticky-total-b-value">—</strong>
+              </span>
+            </span>
           </div>
           <button class="btn btn-sm" id="copy-link" title="Copy shareable URL with all current settings">
             🔗 Copy Link
@@ -76,6 +81,17 @@
       <details>
         <summary class="h4 mb-2 py-2" style="cursor: pointer; list-style: revert;">🔍 Query &amp; Export Costs</summary>
         <div id="query-export"></div>
+      </details>
+
+      <details id="scenario-section">
+        <summary class="h4 mb-2 py-2" style="cursor: pointer; list-style: revert;">🅱️ Compare Scenario B</summary>
+        <div class="mb-3 p-2">
+          <label class="d-flex flex-items-center" style="gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="scenario-toggle">
+            <span class="text-small color-fg-muted">Enable to override specific inputs and compare two scenarios side-by-side</span>
+          </label>
+        </div>
+        <div id="scenario-b-panel" style="display: none;"></div>
       </details>
 
       <details open>

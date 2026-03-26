@@ -1,12 +1,10 @@
 import type { CalculatorState } from './state';
 import { DEFAULT_STATE } from './state';
 
-// Compact URL parameter keys
 const PARAM_MAP: Record<keyof CalculatorState, string> = {
   discountPercent: 'disc',
   growthPercent: 'grow',
   projectionMonths: 'period',
-  sentinelEnabled: 'sentinel',
   totalGbPerDay: 'vol',
   auxiliaryPercent: 'aux',
   basicPercent: 'bas',
@@ -22,15 +20,21 @@ const PARAM_MAP: Record<keyof CalculatorState, string> = {
   platformLogsGbPerMonth: 'plat',
 };
 
-// Reverse map: short key -> state key
 const REVERSE_MAP: Record<string, keyof CalculatorState> = {};
 for (const [stateKey, shortKey] of Object.entries(PARAM_MAP)) {
   REVERSE_MAP[shortKey] = stateKey as keyof CalculatorState;
 }
 
-/**
- * Read state from URL query parameters, falling back to defaults.
- */
+function parseValue(stateKey: string, value: string): any {
+  if (stateKey === 'commitmentTier') {
+    if (value === 'auto' || value === 'payg') return value;
+    const num = parseFloat(value);
+    return isNaN(num) ? undefined : num;
+  }
+  const num = parseFloat(value);
+  return isNaN(num) ? undefined : num;
+}
+
 export function readStateFromUrl(): CalculatorState {
   const params = new URLSearchParams(window.location.search);
   const state = { ...DEFAULT_STATE };
@@ -38,43 +42,50 @@ export function readStateFromUrl(): CalculatorState {
   for (const [shortKey, stateKey] of Object.entries(REVERSE_MAP)) {
     const value = params.get(shortKey);
     if (value === null) continue;
-
-    if (stateKey === 'sentinelEnabled') {
-      (state as any)[stateKey] = value === '1' || value === 'true';
-    } else if (stateKey === 'commitmentTier') {
-      if (value === 'auto' || value === 'payg') {
-        state.commitmentTier = value;
-      } else {
-        const num = parseFloat(value);
-        if (!isNaN(num)) state.commitmentTier = num;
-      }
-    } else {
-      const num = parseFloat(value);
-      if (!isNaN(num)) {
-        (state as any)[stateKey] = num;
-      }
-    }
+    const parsed = parseValue(stateKey, value);
+    if (parsed !== undefined) (state as any)[stateKey] = parsed;
   }
 
   return state;
 }
 
-/**
- * Write state to URL query parameters without page reload.
- */
-export function writeStateToUrl(state: CalculatorState): void {
+export function readScenarioBFromUrl(): { enabled: boolean; overrides: Partial<CalculatorState> } {
+  const params = new URLSearchParams(window.location.search);
+  const enabled = params.get('sb') === '1';
+  const overrides: Partial<CalculatorState> = {};
+
+  if (!enabled) return { enabled, overrides };
+
+  for (const [stateKey, shortKey] of Object.entries(PARAM_MAP)) {
+    const value = params.get(`sb_${shortKey}`);
+    if (value === null) continue;
+    const parsed = parseValue(stateKey, value);
+    if (parsed !== undefined) (overrides as any)[stateKey] = parsed;
+  }
+
+  return { enabled, overrides };
+}
+
+export function writeStateToUrl(
+  state: CalculatorState,
+  scenarioEnabled?: boolean,
+  scenarioBOverrides?: Partial<CalculatorState>,
+): void {
   const params = new URLSearchParams();
 
   for (const [stateKey, shortKey] of Object.entries(PARAM_MAP)) {
     const value = (state as any)[stateKey];
     const defaultValue = (DEFAULT_STATE as any)[stateKey];
-
-    // Only include non-default values to keep URLs compact
     if (value !== defaultValue) {
-      if (stateKey === 'sentinelEnabled') {
-        params.set(shortKey, value ? '1' : '0');
-      } else {
-        params.set(shortKey, String(value));
+      params.set(shortKey, String(value));
+    }
+  }
+
+  if (scenarioEnabled && scenarioBOverrides) {
+    params.set('sb', '1');
+    for (const [stateKey, shortKey] of Object.entries(PARAM_MAP)) {
+      if (stateKey in scenarioBOverrides) {
+        params.set(`sb_${shortKey}`, String((scenarioBOverrides as any)[stateKey]));
       }
     }
   }
@@ -87,15 +98,11 @@ export function writeStateToUrl(state: CalculatorState): void {
   window.history.replaceState(null, '', newUrl);
 }
 
-/**
- * Copy current URL to clipboard.
- */
 export async function copyLinkToClipboard(): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(window.location.href);
     return true;
   } catch {
-    // Fallback
     const input = document.createElement('input');
     input.value = window.location.href;
     document.body.appendChild(input);

@@ -1,5 +1,4 @@
 import type { CalculatorState } from '../state';
-import { PRICING } from '../pricing-data';
 
 export type StateChangeCallback = (state: CalculatorState) => void;
 
@@ -57,18 +56,7 @@ export function renderGlobalSettings(
             </div>
           </div>
 
-          <div class="form-group" style="min-width: 160px;">
-            <div class="form-group-header">
-              <label>Microsoft Sentinel</label>
-            </div>
-            <div class="form-group-body">
-              <label class="d-flex flex-items-center" style="gap: 6px; cursor: pointer;">
-                <input type="checkbox" id="sentinel" ${state.sentinelEnabled ? 'checked' : ''}>
-                <span>Sentinel enabled</span>
-              </label>
-              <p class="note">Changes Analytics free retention from ${PRICING.retention.included.analyticsDays} to ${PRICING.retention.included.analyticsSentinelDays} days</p>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>
@@ -80,13 +68,11 @@ export function renderGlobalSettings(
   const growthInput = container.querySelector('#growth') as HTMLInputElement;
   const growthSlider = container.querySelector('#growth-slider') as HTMLInputElement;
   const periodSelect = container.querySelector('#period') as HTMLSelectElement;
-  const sentinelCheck = container.querySelector('#sentinel') as HTMLInputElement;
 
   const sync = () => {
     state.discountPercent = parseFloat(discountInput.value) || 0;
     state.growthPercent = parseFloat(growthInput.value) || 0;
     state.projectionMonths = parseInt(periodSelect.value) || 12;
-    state.sentinelEnabled = sentinelCheck.checked;
     onChange(state);
   };
 
@@ -95,5 +81,4 @@ export function renderGlobalSettings(
   growthInput.addEventListener('input', () => { growthSlider.value = growthInput.value; sync(); });
   growthSlider.addEventListener('input', () => { growthInput.value = growthSlider.value; sync(); });
   periodSelect.addEventListener('change', sync);
-  sentinelCheck.addEventListener('change', sync);
 }
