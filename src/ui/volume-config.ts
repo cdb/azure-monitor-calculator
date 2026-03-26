@@ -1,6 +1,7 @@
 import type { CalculatorState } from '../state';
 import { PRICING } from '../pricing-data';
 import { number as fmtNum } from '../format';
+import { findOptimalTier } from '../engine';
 
 export type StateChangeCallback = (state: CalculatorState) => void;
 
@@ -40,10 +41,11 @@ export function renderVolumeConfig(
         </div>
 
         <div class="d-flex flex-wrap" style="gap: 24px;">
-          ${renderPlanSlider('analytics', 'Analytics Logs', state.analyticsPercent, '#8250df', '$2.30/GB PAYG', PLAN_DESCRIPTIONS.analytics)}
-          ${renderPlanSlider('basic', 'Basic Logs', state.basicPercent, '#1a7f37', '$0.50/GB', PLAN_DESCRIPTIONS.basic)}
-          ${renderPlanSlider('auxiliary', 'Auxiliary Logs', state.auxiliaryPercent, '#0969da', '$0.05/GB', PLAN_DESCRIPTIONS.auxiliary)}
+          ${renderPlanSlider('analytics', 'Analytics Logs', state.analyticsPercent, '#8250df', PLAN_DESCRIPTIONS.analytics)}
+          ${renderPlanSlider('basic', 'Basic Logs', state.basicPercent, '#1a7f37', PLAN_DESCRIPTIONS.basic)}
+          ${renderPlanSlider('auxiliary', 'Auxiliary Logs', state.auxiliaryPercent, '#0969da', PLAN_DESCRIPTIONS.auxiliary)}
         </div>
+        <p class="text-small color-fg-muted mt-1" id="analytics-effective-price"></p>
 
         <div id="plan-split-bar" class="mt-3 mb-2" style="height: 24px; border-radius: 6px; overflow: hidden; display: flex; border: 1px solid var(--borderColor-default, #d0d7de);">
         </div>
@@ -119,6 +121,27 @@ export function renderVolumeConfig(
     `;
   }
 
+  function updateEffectivePrice() {
+    const el = container.querySelector('#analytics-effective-price') as HTMLElement;
+    if (!el) return;
+    const analyticsGbPerDay = state.totalGbPerDay * (state.analyticsPercent / 100);
+
+    if (state.commitmentTier === 'payg' || analyticsGbPerDay <= 0) {
+      el.textContent = `Analytics effective rate: $${PRICING.ingestion.analytics.payg.perGb.toFixed(2)}/GB (Pay-As-You-Go)`;
+      return;
+    }
+
+    const tier = state.commitmentTier === 'auto'
+      ? findOptimalTier(analyticsGbPerDay)
+      : PRICING.ingestion.analytics.commitmentTiers.find(t => t.gbPerDay === state.commitmentTier) ?? null;
+
+    if (tier) {
+      el.textContent = `Analytics effective rate: ~$${tier.effectivePerGb.toFixed(3)}/GB (${fmtNum(tier.gbPerDay, 0)} GB/day tier, ${tier.savingsPercent}% savings vs PAYG)`;
+    } else {
+      el.textContent = `Analytics effective rate: $${PRICING.ingestion.analytics.payg.perGb.toFixed(2)}/GB (Pay-As-You-Go — volume too low for commitment tier savings)`;
+    }
+  }
+
   function handlePlanChange(changed: 'auxiliary' | 'basic' | 'analytics') {
     const fields = { auxiliary: auxInput, basic: basInput, analytics: anaInput };
     const sliders = { auxiliary: auxSlider, basic: basSlider, analytics: anaSlider };
@@ -160,12 +183,14 @@ export function renderVolumeConfig(
     }
 
     updateSplitBar();
+    updateEffectivePrice();
     onChange(state);
   }
 
   totalInput.addEventListener('input', () => {
     state.totalGbPerDay = displayToGb(getDisplayValue());
     updateSplitBar();
+    updateEffectivePrice();
     onChange(state);
   });
 
@@ -190,13 +215,21 @@ export function renderVolumeConfig(
     } else {
       state.commitmentTier = parseFloat(val);
     }
+    updateEffectivePrice();
     onChange(state);
   });
 
   updateSplitBar();
+  updateEffectivePrice();
 }
 
-function renderPlanSlider(id: string, label: string, value: number, color: string, price: string, description: string): string {
+function renderPlanSlider(id: string, label: string, value: number, color: string, description: string): string {
+  const prices: Record<string, string> = {
+    analytics: '$2.30/GB PAYG',
+    basic: '$0.50/GB',
+    auxiliary: '$0.05/GB',
+  };
+  const price = prices[id] || '';
   return `
     <div class="form-group" style="min-width: 200px; flex: 1;">
       <div class="form-group-header">
