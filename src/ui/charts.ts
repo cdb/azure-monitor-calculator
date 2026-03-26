@@ -6,11 +6,9 @@ import { currency } from '../format';
 Chart.register(...registerables);
 
 let breakdownChart: Chart | null = null;
-let projectionChart: Chart | null = null;
+let monthlyChart: Chart | null = null;
+let cumulativeChart: Chart | null = null;
 
-/**
- * Render cost breakdown pie/bar chart and projection line chart.
- */
 export function renderCharts(
   container: HTMLElement,
   breakdown: MonthlyCostBreakdown,
@@ -23,22 +21,27 @@ export function renderCharts(
         <h3 class="Box-title">Charts</h3>
       </div>
       <div class="Box-body">
-        <div class="d-flex flex-wrap" style="gap: 24px;">
+        <div class="d-flex flex-wrap" style="gap: 24px; margin-bottom: 24px;">
           <div style="flex: 1; min-width: 280px; max-width: 360px; position: relative; height: 300px;">
             <h4 class="f5 mb-2 text-center">Monthly Cost Breakdown</h4>
             <canvas id="breakdown-chart"></canvas>
           </div>
           <div style="flex: 2; min-width: 400px; position: relative; height: 300px;">
-            <h4 class="f5 mb-2 text-center">Cost Projection Over Time</h4>
-            <canvas id="projection-chart"></canvas>
+            <h4 class="f5 mb-2 text-center">Monthly Cost Over Time</h4>
+            <canvas id="monthly-chart"></canvas>
           </div>
+        </div>
+        <div style="position: relative; height: 280px;">
+          <h4 class="f5 mb-2 text-center">Cumulative Spend</h4>
+          <canvas id="cumulative-chart"></canvas>
         </div>
       </div>
     </div>
   `;
 
   renderBreakdownChart(container, breakdown, discountPercent);
-  renderProjectionChart(container, projection);
+  renderMonthlyChart(container, projection);
+  renderCumulativeChart(container, projection);
 }
 
 function renderBreakdownChart(
@@ -49,16 +52,12 @@ function renderBreakdownChart(
   const canvas = container.querySelector('#breakdown-chart') as HTMLCanvasElement;
   if (!canvas) return;
 
-  // Destroy previous chart instance
-  if (breakdownChart) {
-    breakdownChart.destroy();
-    breakdownChart = null;
-  }
+  if (breakdownChart) { breakdownChart.destroy(); breakdownChart = null; }
 
   const items: { label: string; value: number; color: string }[] = [
-    { label: 'Auxiliary Ingestion', value: breakdown.auxiliaryIngestion + breakdown.auxiliaryLogProcessing, color: '#0969da' },
-    { label: 'Basic Ingestion', value: breakdown.basicIngestion, color: '#1a7f37' },
     { label: 'Analytics Ingestion', value: breakdown.analyticsIngestion, color: '#8250df' },
+    { label: 'Basic Ingestion', value: breakdown.basicIngestion, color: '#1a7f37' },
+    { label: 'Auxiliary Ingestion', value: breakdown.auxiliaryIngestion + breakdown.auxiliaryLogProcessing, color: '#0969da' },
     { label: 'Interactive Retention', value: breakdown.analyticsInteractiveRetention, color: '#bf8700' },
     { label: 'Long-Term Retention', value: breakdown.analyticsLongTermRetention + breakdown.basicLongTermRetention + breakdown.auxiliaryLongTermRetention, color: '#cf222e' },
     { label: 'Query & Search', value: breakdown.queryCost + breakdown.searchJobsCost, color: '#0550ae' },
@@ -94,85 +93,104 @@ function renderBreakdownChart(
   });
 }
 
-function renderProjectionChart(
+function renderMonthlyChart(
   container: HTMLElement,
   projection: ProjectionResult,
 ): void {
-  const canvas = container.querySelector('#projection-chart') as HTMLCanvasElement;
+  const canvas = container.querySelector('#monthly-chart') as HTMLCanvasElement;
   if (!canvas) return;
 
-  if (projectionChart) {
-    projectionChart.destroy();
-    projectionChart = null;
-  }
+  if (monthlyChart) { monthlyChart.destroy(); monthlyChart = null; }
 
   const labels = projection.months.map(m => m.label);
   const monthlyCosts = projection.months.map(m => Math.round(m.breakdown.total * 100) / 100);
-  const cumulativeCosts = projection.months.map(m => Math.round(m.cumulativeTotal * 100) / 100);
 
-  projectionChart = new Chart(canvas, {
-    type: 'line',
+  monthlyChart = new Chart(canvas, {
+    type: 'bar',
     data: {
       labels,
-      datasets: [
-        {
-          label: 'Monthly Cost',
-          data: monthlyCosts,
-          borderColor: '#8250df',
-          backgroundColor: 'rgba(130, 80, 223, 0.1)',
-          fill: true,
-          tension: 0.3,
-          yAxisID: 'y',
-        },
-        {
-          label: 'Cumulative Cost',
-          data: cumulativeCosts,
-          borderColor: '#0969da',
-          backgroundColor: 'rgba(9, 105, 218, 0.05)',
-          fill: false,
-          tension: 0.3,
-          borderDash: [5, 5],
-          yAxisID: 'y1',
-        },
-      ],
+      datasets: [{
+        label: 'Monthly Cost',
+        data: monthlyCosts,
+        backgroundColor: 'rgba(130, 80, 223, 0.6)',
+        borderColor: '#8250df',
+        borderWidth: 1,
+      }],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      interaction: {
-        mode: 'index',
-        intersect: false,
-      },
       plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { font: { size: 11 }, padding: 8 },
-        },
+        legend: { display: false },
         tooltip: {
           callbacks: {
-            label: (ctx) => `${ctx.dataset.label}: ${currency(ctx.parsed.y ?? 0)}`,
+            label: (ctx) => `Monthly Cost: ${currency(ctx.parsed.y ?? 0)}`,
           },
         },
       },
       scales: {
         y: {
-          type: 'linear',
-          position: 'left',
           beginAtZero: true,
-          title: { display: true, text: 'Monthly Cost ($)' },
+          ticks: { callback: (value) => `$${Number(value).toLocaleString()}` },
+        },
+        x: {
           ticks: {
-            callback: (value) => `$${Number(value).toLocaleString()}`,
+            maxTicksLimit: 12,
+            font: { size: 10 },
           },
         },
-        y1: {
-          type: 'linear',
-          position: 'right',
-          beginAtZero: true,
-          title: { display: true, text: 'Cumulative ($)' },
-          ticks: {
-            callback: (value) => `$${Number(value).toLocaleString()}`,
+      },
+    },
+  });
+}
+
+function renderCumulativeChart(
+  container: HTMLElement,
+  projection: ProjectionResult,
+): void {
+  const canvas = container.querySelector('#cumulative-chart') as HTMLCanvasElement;
+  if (!canvas) return;
+
+  if (cumulativeChart) { cumulativeChart.destroy(); cumulativeChart = null; }
+
+  const labels = projection.months.map(m => m.label);
+  const cumulativeCosts = projection.months.map(m => Math.round(m.cumulativeTotal * 100) / 100);
+
+  cumulativeChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Cumulative Spend',
+        data: cumulativeCosts,
+        borderColor: '#0969da',
+        backgroundColor: 'rgba(9, 105, 218, 0.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `Cumulative: ${currency(ctx.parsed.y ?? 0)}`,
           },
-          grid: { drawOnChartArea: false },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { callback: (value) => `$${Number(value).toLocaleString()}` },
+        },
+        x: {
+          ticks: {
+            maxTicksLimit: 12,
+            font: { size: 10 },
+          },
         },
       },
     },

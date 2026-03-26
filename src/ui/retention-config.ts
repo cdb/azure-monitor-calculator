@@ -11,11 +11,17 @@ export function renderRetentionConfig(
   const includedAnalytics = state.sentinelEnabled
     ? PRICING.retention.included.analyticsSentinelDays
     : PRICING.retention.included.analyticsDays;
+  const includedBasicDays = PRICING.retention.included.basicDays;
+  const includedAuxDays = PRICING.retention.included.auxiliaryDays;
 
-  // Convert long-term days to months for display (round to nearest month)
+  // Total values for sliders (free + extra)
+  const anaIntTotal = includedAnalytics + state.retentionAnalyticsInteractiveDays;
   const anaLtMonths = Math.round(state.retentionAnalyticsLongTermDays / 30);
-  const basLtMonths = Math.round(state.retentionBasicLongTermDays / 30);
-  const auxLtMonths = Math.round(state.retentionAuxiliaryLongTermDays / 30);
+  const basLtTotalMonths = Math.round(includedBasicDays / 30) + Math.round(state.retentionBasicLongTermDays / 30);
+  const auxLtTotalMonths = Math.round(includedAuxDays / 30) + Math.round(state.retentionAuxiliaryLongTermDays / 30);
+
+  const basFreeMo = Math.round(includedBasicDays / 30);
+  const auxFreeMo = Math.round(includedAuxDays / 30);
 
   container.innerHTML = `
     <div class="Box mb-3">
@@ -24,7 +30,7 @@ export function renderRetentionConfig(
       </div>
       <div class="Box-body">
         <p class="text-small color-fg-muted mb-3">
-          Configure retention <strong>beyond</strong> the free included period.
+          Slide to set total retention period. The free included portion is shown — you only pay for time beyond it.
           Interactive: $${PRICING.retention.interactive.perGbPerMonth}/GB/month &middot;
           Long-term: $${PRICING.retention.longTerm.perGbPerMonth}/GB/month
         </p>
@@ -34,19 +40,18 @@ export function renderRetentionConfig(
           <!-- Analytics -->
           <div style="flex: 1; min-width: 250px;">
             <h4 class="f5 mb-2"><span style="color: #8250df;">●</span> Analytics Logs</h4>
-            <p class="text-small color-fg-muted mb-2">Included free: ${includedAnalytics} days</p>
 
             <div class="mb-3">
               <label class="text-small d-block mb-1">
-                Extra interactive retention:
-                <strong id="ret-ana-int-label">${state.retentionAnalyticsInteractiveDays} days</strong>
-                <span class="color-fg-muted" id="ret-ana-int-context">(total ${includedAnalytics + state.retentionAnalyticsInteractiveDays} days)</span>
+                Interactive retention:
+                <strong id="ret-ana-int-label">${anaIntTotal} days</strong>
+                <span class="color-fg-muted" id="ret-ana-int-context">(${includedAnalytics} free${state.retentionAnalyticsInteractiveDays > 0 ? ` + ${state.retentionAnalyticsInteractiveDays} billed` : ''})</span>
               </label>
-              <input type="range" id="ret-ana-int" min="0" max="${730 - includedAnalytics}" step="1"
-                value="${state.retentionAnalyticsInteractiveDays}"
+              <input type="range" id="ret-ana-int" min="${includedAnalytics}" max="730" step="1"
+                value="${anaIntTotal}"
                 style="width: 100%; accent-color: #8250df;">
               <div class="d-flex flex-justify-between text-small color-fg-muted">
-                <span>0</span><span>${730 - includedAnalytics} days</span>
+                <span>${includedAnalytics} days (free)</span><span>730 days</span>
               </div>
             </div>
 
@@ -54,7 +59,7 @@ export function renderRetentionConfig(
               <label class="text-small d-block mb-1">
                 Long-term retention:
                 <strong id="ret-ana-lt-label">${anaLtMonths} months</strong>
-                <span class="color-fg-muted" id="ret-ana-lt-context">(${(anaLtMonths / 12).toFixed(1)} years)</span>
+                <span class="color-fg-muted" id="ret-ana-lt-context">${anaLtMonths > 0 ? `(${(anaLtMonths / 12).toFixed(1)} yr, all billed)` : '(none)'}</span>
               </label>
               <input type="range" id="ret-ana-lt" min="0" max="144" step="1"
                 value="${anaLtMonths}"
@@ -68,19 +73,18 @@ export function renderRetentionConfig(
           <!-- Basic -->
           <div style="flex: 1; min-width: 200px;">
             <h4 class="f5 mb-2"><span style="color: #1a7f37;">●</span> Basic Logs</h4>
-            <p class="text-small color-fg-muted mb-2">Included free: ${PRICING.retention.included.basicDays} days</p>
 
             <div>
               <label class="text-small d-block mb-1">
-                Long-term retention:
-                <strong id="ret-bas-lt-label">${basLtMonths} months</strong>
-                <span class="color-fg-muted" id="ret-bas-lt-context">(${(basLtMonths / 12).toFixed(1)} years)</span>
+                Total retention:
+                <strong id="ret-bas-lt-label">${basLtTotalMonths} months</strong>
+                <span class="color-fg-muted" id="ret-bas-lt-context">(${basFreeMo} free${state.retentionBasicLongTermDays > 0 ? ` + ${Math.round(state.retentionBasicLongTermDays / 30)} billed` : ''})</span>
               </label>
-              <input type="range" id="ret-bas-lt" min="0" max="144" step="1"
-                value="${basLtMonths}"
+              <input type="range" id="ret-bas-lt" min="${basFreeMo}" max="144" step="1"
+                value="${basLtTotalMonths}"
                 style="width: 100%; accent-color: #1a7f37;">
               <div class="d-flex flex-justify-between text-small color-fg-muted">
-                <span>0</span><span>144 months (12 yr)</span>
+                <span>${basFreeMo} mo (free)</span><span>144 months (12 yr)</span>
               </div>
             </div>
           </div>
@@ -88,19 +92,18 @@ export function renderRetentionConfig(
           <!-- Auxiliary -->
           <div style="flex: 1; min-width: 200px;">
             <h4 class="f5 mb-2"><span style="color: #0969da;">●</span> Auxiliary Logs</h4>
-            <p class="text-small color-fg-muted mb-2">Included free: ${PRICING.retention.included.auxiliaryDays} days</p>
 
             <div>
               <label class="text-small d-block mb-1">
-                Long-term retention:
-                <strong id="ret-aux-lt-label">${auxLtMonths} months</strong>
-                <span class="color-fg-muted" id="ret-aux-lt-context">(${(auxLtMonths / 12).toFixed(1)} years)</span>
+                Total retention:
+                <strong id="ret-aux-lt-label">${auxLtTotalMonths} months</strong>
+                <span class="color-fg-muted" id="ret-aux-lt-context">(${auxFreeMo} free${state.retentionAuxiliaryLongTermDays > 0 ? ` + ${Math.round(state.retentionAuxiliaryLongTermDays / 30)} billed` : ''})</span>
               </label>
-              <input type="range" id="ret-aux-lt" min="0" max="144" step="1"
-                value="${auxLtMonths}"
+              <input type="range" id="ret-aux-lt" min="${auxFreeMo}" max="144" step="1"
+                value="${auxLtTotalMonths}"
                 style="width: 100%; accent-color: #0969da;">
               <div class="d-flex flex-justify-between text-small color-fg-muted">
-                <span>0</span><span>144 months (12 yr)</span>
+                <span>${auxFreeMo} mo (free)</span><span>144 months (12 yr)</span>
               </div>
             </div>
           </div>
@@ -115,37 +118,40 @@ export function renderRetentionConfig(
   const retAuxLt = container.querySelector('#ret-aux-lt') as HTMLInputElement;
 
   function updateLabels() {
-    // Re-query labels each time since we don't replace innerHTML
-    const intDays = parseInt(retAnaInt.value) || 0;
+    const intTotal = parseInt(retAnaInt.value) || includedAnalytics;
+    const intExtra = intTotal - includedAnalytics;
     const intLabel = container.querySelector('#ret-ana-int-label') as HTMLElement;
-    const intContext = container.querySelector('#ret-ana-int-context') as HTMLElement;
-    if (intLabel) intLabel.textContent = `${intDays} days`;
-    if (intContext) intContext.textContent = `(total ${includedAnalytics + intDays} days)`;
+    const intCtx = container.querySelector('#ret-ana-int-context') as HTMLElement;
+    if (intLabel) intLabel.textContent = `${intTotal} days`;
+    if (intCtx) intCtx.textContent = `(${includedAnalytics} free${intExtra > 0 ? ` + ${intExtra} billed` : ''})`;
 
-    const anaMonths = parseInt(retAnaLt.value) || 0;
-    const anaLabel = container.querySelector('#ret-ana-lt-label') as HTMLElement;
-    const anaContext = container.querySelector('#ret-ana-lt-context') as HTMLElement;
-    if (anaLabel) anaLabel.textContent = `${anaMonths} months`;
-    if (anaContext) anaContext.textContent = `(${(anaMonths / 12).toFixed(1)} years)`;
+    const anaLt = parseInt(retAnaLt.value) || 0;
+    const anaLtLabel = container.querySelector('#ret-ana-lt-label') as HTMLElement;
+    const anaLtCtx = container.querySelector('#ret-ana-lt-context') as HTMLElement;
+    if (anaLtLabel) anaLtLabel.textContent = `${anaLt} months`;
+    if (anaLtCtx) anaLtCtx.textContent = anaLt > 0 ? `(${(anaLt / 12).toFixed(1)} yr, all billed)` : '(none)';
 
-    const basMonths = parseInt(retBasLt.value) || 0;
+    const basTotal = parseInt(retBasLt.value) || basFreeMo;
+    const basExtra = basTotal - basFreeMo;
     const basLabel = container.querySelector('#ret-bas-lt-label') as HTMLElement;
-    const basContext = container.querySelector('#ret-bas-lt-context') as HTMLElement;
-    if (basLabel) basLabel.textContent = `${basMonths} months`;
-    if (basContext) basContext.textContent = `(${(basMonths / 12).toFixed(1)} years)`;
+    const basCtx = container.querySelector('#ret-bas-lt-context') as HTMLElement;
+    if (basLabel) basLabel.textContent = `${basTotal} months`;
+    if (basCtx) basCtx.textContent = `(${basFreeMo} free${basExtra > 0 ? ` + ${basExtra} billed` : ''})`;
 
-    const auxMonths = parseInt(retAuxLt.value) || 0;
+    const auxTotal = parseInt(retAuxLt.value) || auxFreeMo;
+    const auxExtra = auxTotal - auxFreeMo;
     const auxLabel = container.querySelector('#ret-aux-lt-label') as HTMLElement;
-    const auxContext = container.querySelector('#ret-aux-lt-context') as HTMLElement;
-    if (auxLabel) auxLabel.textContent = `${auxMonths} months`;
-    if (auxContext) auxContext.textContent = `(${(auxMonths / 12).toFixed(1)} years)`;
+    const auxCtx = container.querySelector('#ret-aux-lt-context') as HTMLElement;
+    if (auxLabel) auxLabel.textContent = `${auxTotal} months`;
+    if (auxCtx) auxCtx.textContent = `(${auxFreeMo} free${auxExtra > 0 ? ` + ${auxExtra} billed` : ''})`;
   }
 
   const sync = () => {
-    state.retentionAnalyticsInteractiveDays = parseInt(retAnaInt.value) || 0;
+    // Convert total slider values back to "extra beyond free" for state
+    state.retentionAnalyticsInteractiveDays = Math.max(0, (parseInt(retAnaInt.value) || includedAnalytics) - includedAnalytics);
     state.retentionAnalyticsLongTermDays = (parseInt(retAnaLt.value) || 0) * 30;
-    state.retentionBasicLongTermDays = (parseInt(retBasLt.value) || 0) * 30;
-    state.retentionAuxiliaryLongTermDays = (parseInt(retAuxLt.value) || 0) * 30;
+    state.retentionBasicLongTermDays = Math.max(0, ((parseInt(retBasLt.value) || basFreeMo) - basFreeMo)) * 30;
+    state.retentionAuxiliaryLongTermDays = Math.max(0, ((parseInt(retAuxLt.value) || auxFreeMo) - auxFreeMo)) * 30;
     updateLabels();
     onChange(state);
   };
