@@ -59,6 +59,9 @@ def fetch_region(region):
     basic = find_meter(all_items, "Basic Logs Data Ingestion") or 0
     aux = find_meter(all_items, "Auxiliary Logs Data Ingestion") or 0
     retention_int = find_meter(all_items, "Analytics Logs Data Retention") or 0
+    retention_lt = find_meter(all_items, "Data Archive") or 0
+    if not retention_lt and retention_int:
+        retention_lt = round(retention_int * 0.2, 4)  # fallback estimate
     search_q = find_meter(all_items, "Search Queries Scanned") or 0
     search_j = find_meter(all_items, "Search Jobs Scanned") or 0
     platform = find_meter(all_items, "Platform Logs Data Processed") or 0
@@ -74,7 +77,7 @@ def fetch_region(region):
     return {
         "payg": payg, "basic": basic, "aux": aux,
         "retention_int": retention_int,
-        "retention_lt": round(retention_int * 0.2, 4) if retention_int else 0.02,
+        "retention_lt": retention_lt,
         "search_q": search_q, "search_j": search_j,
         "platform": platform, "replication": replication, "emission": emission,
         "tiers": tiers,
