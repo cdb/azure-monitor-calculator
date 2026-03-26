@@ -33,8 +33,11 @@ const chartsEl = document.querySelector<HTMLElement>('#charts')!;
 const projectionTableEl = document.querySelector<HTMLElement>('#projection-table')!;
 const copyLinkBtn = document.querySelector<HTMLButtonElement>('#copy-link')!;
 const stickyTotalEl = document.querySelector<HTMLElement>('#sticky-total-value')!;
+const stickyAnnualEl = document.querySelector<HTMLElement>('#sticky-annual-value')!;
 const stickyTotalBEl = document.querySelector<HTMLElement>('#sticky-total-b')!;
 const stickyTotalBValueEl = document.querySelector<HTMLElement>('#sticky-total-b-value')!;
+const stickyAnnualBEl = document.querySelector<HTMLElement>('#sticky-annual-b')!;
+const stickyAnnualBValueEl = document.querySelector<HTMLElement>('#sticky-annual-b-value')!;
 const scenarioToggle = document.querySelector<HTMLInputElement>('#scenario-toggle')!;
 const scenarioBPanel = document.querySelector<HTMLElement>('#scenario-b-panel')!;
 
@@ -43,6 +46,7 @@ function recalculate() {
 
   const breakdownA = calculateMonthlyCost(state);
   stickyTotalEl.textContent = currency(breakdownA.total);
+  stickyAnnualEl.textContent = currency(breakdownA.total * 12);
 
   let breakdownB = undefined;
   if (scenarioEnabled) {
@@ -50,6 +54,8 @@ function recalculate() {
     breakdownB = calculateMonthlyCost(stateB);
     stickyTotalBEl.style.display = '';
     stickyTotalBValueEl.textContent = currency(breakdownB.total);
+    stickyAnnualBEl.style.display = '';
+    stickyAnnualBValueEl.textContent = currency(breakdownB.total * 12);
 
     const projectionA = generateProjection(state);
     const projectionB = generateProjection(stateB);
@@ -58,6 +64,7 @@ function recalculate() {
     renderProjectionTable(projectionTableEl, projectionA, projectionB);
   } else {
     stickyTotalBEl.style.display = 'none';
+    stickyAnnualBEl.style.display = 'none';
     renderCostSummary(costSummaryEl, breakdownA, state.discountPercent);
     const projectionA = generateProjection(state);
     renderCharts(chartsEl, breakdownA, projectionA, state.discountPercent);
@@ -127,7 +134,8 @@ if (pricingDateNote) {
 
 copyLinkBtn.addEventListener('click', async () => {
   if (await copyLinkToClipboard()) {
-    copyLinkBtn.textContent = '✓ Link Copied!';
-    setTimeout(() => { copyLinkBtn.textContent = '🔗 Copy Link'; }, 2000);
+    copyLinkBtn.textContent = '✓';
+    copyLinkBtn.title = 'Link copied!';
+    setTimeout(() => { copyLinkBtn.textContent = '🔗'; copyLinkBtn.title = 'Copy shareable URL'; }, 2000);
   }
 });

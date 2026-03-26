@@ -45,22 +45,29 @@
   <body>
     <div class="color-bg-subtle border-bottom" style="position: sticky; top: 0; z-index: 100; backdrop-filter: blur(8px); background: rgba(246, 248, 250, 0.92);">
       <div class="container-lg d-flex flex-items-center flex-justify-between py-2">
-        <div>
+        <div class="d-flex flex-items-center" style="gap: 8px;">
+          <button class="btn-octicon" id="copy-link" title="Copy shareable URL" style="padding: 4px;">🔗</button>
           <h1 class="h3 mb-0">Azure Monitor Logs Cost Calculator</h1>
         </div>
-        <div class="d-flex flex-items-center" style="gap: 12px;">
-          <div id="sticky-total" class="text-right" style="line-height: 1.2;">
-            <span class="text-small color-fg-muted">Monthly cost</span><br>
-            <span class="d-flex flex-items-center" style="gap: 8px;">
+        <div class="d-flex flex-items-center" style="gap: 20px;">
+          <div class="text-right" style="line-height: 1.2;">
+            <span class="text-small color-fg-muted">Monthly</span><br>
+            <span class="d-flex flex-items-center" style="gap: 6px;">
               <strong class="f3 text-mono" id="sticky-total-value">—</strong>
               <span id="sticky-total-b" style="display: none; color: #bf8700;">
                 vs <strong class="f4 text-mono" id="sticky-total-b-value">—</strong>
               </span>
             </span>
           </div>
-          <button class="btn btn-sm" id="copy-link" title="Copy shareable URL with all current settings">
-            🔗 Copy Link
-          </button>
+          <div class="text-right" style="line-height: 1.2;">
+            <span class="text-small color-fg-muted">Annual</span><br>
+            <span class="d-flex flex-items-center" style="gap: 6px;">
+              <strong class="f3 text-mono" id="sticky-annual-value">—</strong>
+              <span id="sticky-annual-b" style="display: none; color: #bf8700;">
+                vs <strong class="f4 text-mono" id="sticky-annual-b-value">—</strong>
+              </span>
+            </span>
+          </div>
         </div>
       </div>
     </div>
