@@ -2,6 +2,7 @@ import '@primer/css/dist/primer.css';
 import type { CalculatorState } from './state';
 import { readStateFromUrl, writeStateToUrl, copyLinkToClipboard } from './url-state';
 import { calculateMonthlyCost, generateProjection } from './engine';
+import { currency } from './format';
 import { renderGlobalSettings } from './ui/global-settings';
 import { renderVolumeConfig } from './ui/volume-config';
 import { renderRetentionConfig } from './ui/retention-config';
@@ -22,16 +23,19 @@ const costSummaryEl = document.querySelector<HTMLElement>('#cost-summary')!;
 const chartsEl = document.querySelector<HTMLElement>('#charts')!;
 const projectionTableEl = document.querySelector<HTMLElement>('#projection-table')!;
 const copyLinkBtn = document.querySelector<HTMLButtonElement>('#copy-link')!;
+const stickyTotalEl = document.querySelector<HTMLElement>('#sticky-total-value')!;
 
 /**
  * Recalculate and re-render output sections.
- * Input sections are only re-rendered on initial load (they manage their own state).
  */
 function recalculate() {
   writeStateToUrl(state);
 
   const breakdown = calculateMonthlyCost(state);
   renderCostSummary(costSummaryEl, breakdown, state.discountPercent);
+
+  // Update sticky header total
+  stickyTotalEl.textContent = currency(breakdown.total);
 
   const projection = generateProjection(state);
   renderCharts(chartsEl, breakdown, projection, state.discountPercent);

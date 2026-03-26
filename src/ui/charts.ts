@@ -31,7 +31,7 @@ export function renderCharts(
             <canvas id="monthly-chart"></canvas>
           </div>
         </div>
-        <div style="position: relative; height: 280px;">
+        <div style="position: relative; height: 280px; margin-bottom: 16px;">
           <h4 class="f5 mb-2 text-center">Cumulative Spend</h4>
           <canvas id="cumulative-chart"></canvas>
         </div>

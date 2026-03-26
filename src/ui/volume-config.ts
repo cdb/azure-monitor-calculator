@@ -126,7 +126,7 @@ export function renderVolumeConfig(
     const analyticsGbPerDay = state.totalGbPerDay * (state.analyticsPercent / 100);
 
     if (state.commitmentTier === 'payg' || analyticsGbPerDay <= 0) {
-      el.textContent = `($${PRICING.ingestion.analytics.payg.perGb.toFixed(2)}/GB PAYG)`;
+      el.textContent = `($${PRICING.ingestion.analytics.payg.perGb.toFixed(2)}/GB)`;
       return;
     }
 
@@ -135,9 +135,9 @@ export function renderVolumeConfig(
       : PRICING.ingestion.analytics.commitmentTiers.find(t => t.gbPerDay === state.commitmentTier) ?? null;
 
     if (tier) {
-      el.textContent = `(~$${tier.effectivePerGb.toFixed(2)}/GB · ${fmtNum(tier.gbPerDay, 0)} GB/day tier · ${tier.savingsPercent}% off)`;
+      el.textContent = `(~$${tier.effectivePerGb.toFixed(2)}/GB)`;
     } else {
-      el.textContent = `($${PRICING.ingestion.analytics.payg.perGb.toFixed(2)}/GB PAYG)`;
+      el.textContent = `($${PRICING.ingestion.analytics.payg.perGb.toFixed(2)}/GB)`;
     }
   }
 
