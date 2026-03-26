@@ -60,7 +60,7 @@ export function renderVolumeConfig(
           <div class="form-group-body">
             <select class="form-select" id="commitment-tier" style="max-width: 300px;">
               <option value="auto" ${state.commitmentTier === 'auto' ? 'selected' : ''}>Auto (best price)</option>
-              <option value="payg" ${state.commitmentTier === 'payg' ? 'selected' : ''}>Pay-As-You-Go ($2.30/GB)</option>
+              <option value="payg" ${state.commitmentTier === 'payg' ? 'selected' : ''}>Pay-As-You-Go ($${PRICING.ingestion.analytics.payg.perGb}/GB)</option>
               ${tiers.map(t => `
                 <option value="${t.gbPerDay}" ${state.commitmentTier === t.gbPerDay ? 'selected' : ''}>
                   ${fmtNum(t.gbPerDay, 0)} GB/day — $${fmtNum(t.dailyPrice, 0)}/day ($${t.effectivePerGb}/GB, ${t.savingsPercent}% savings)
@@ -222,9 +222,9 @@ export function renderVolumeConfig(
 
 function renderPlanSlider(id: string, label: string, value: number, color: string, description: string): string {
   const prices: Record<string, string> = {
-    analytics: '$2.30/GB PAYG',
-    basic: '$0.50/GB',
-    auxiliary: '$0.05/GB',
+    analytics: `$${PRICING.ingestion.analytics.payg.perGb}/GB PAYG`,
+    basic: `$${PRICING.ingestion.basic.perGb}/GB`,
+    auxiliary: `$${PRICING.ingestion.auxiliary.perGb}/GB`,
   };
   const price = prices[id] || '';
   const priceId = id === 'analytics' ? ' id="analytics-price-label"' : '';

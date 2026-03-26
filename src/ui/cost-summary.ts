@@ -1,4 +1,5 @@
 import type { MonthlyCostBreakdown } from '../engine';
+import { PRICING } from '../pricing-data';
 import { currency, percent } from '../format';
 import { copyTsvToClipboard, downloadCsv } from '../export';
 import type { TableData } from '../export';
@@ -6,7 +7,7 @@ import type { TableData } from '../export';
 function buildRows(breakdown: MonthlyCostBreakdown): [string, string, number][] {
   const tierLabel = breakdown.selectedTier
     ? `${breakdown.selectedTier.gbPerDay} GB/day ($${breakdown.selectedTier.effectivePerGb}/GB)`
-    : 'PAYG ($2.30/GB)';
+    : `PAYG ($${PRICING.ingestion.analytics.payg.perGb}/GB)`;
 
   return [
     ['Ingestion', 'Auxiliary Logs', breakdown.auxiliaryIngestion],

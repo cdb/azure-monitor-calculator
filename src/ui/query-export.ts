@@ -1,4 +1,5 @@
 import type { CalculatorState } from '../state';
+import { PRICING } from '../pricing-data';
 import { renderUnitInput, wireUnitInput } from './unit-input';
 
 export type StateChangeCallback = (state: CalculatorState) => void;
@@ -15,7 +16,7 @@ export function renderQueryExport(
       </div>
       <div class="Box-body">
         <p class="text-small color-fg-muted mb-3">
-          Querying Basic/Auxiliary logs costs $0.005/GB scanned.
+          Querying Basic/Auxiliary logs costs $${PRICING.query.basicAuxiliaryPerGb}/GB scanned.
           These inputs are optional — leave at 0 if not applicable.
         </p>
         <div class="d-flex flex-wrap" style="gap: 24px;">
