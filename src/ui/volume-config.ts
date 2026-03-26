@@ -22,11 +22,17 @@ export function renderVolumeConfig(
       <div class="Box-body">
         <div class="form-group mb-3">
           <div class="form-group-header">
-            <label for="total-volume">Total Daily Log Volume (GB/day)</label>
+            <label for="total-volume">Total Daily Log Volume</label>
           </div>
-          <div class="form-group-body">
+          <div class="form-group-body d-flex flex-items-center" style="gap: 8px;">
             <input class="form-control" type="number" id="total-volume"
-              min="0" step="10" value="${state.totalGbPerDay}" style="max-width: 200px;">
+              min="0" step="${state.totalGbPerDay >= 1000 ? '0.1' : '10'}"
+              value="${state.totalGbPerDay >= 1000 ? (state.totalGbPerDay / 1000) : state.totalGbPerDay}"
+              style="max-width: 160px;">
+            <select class="form-select input-sm" id="volume-unit" style="width: 90px;">
+              <option value="GB" ${state.totalGbPerDay < 1000 ? 'selected' : ''}>GB/day</option>
+              <option value="TB" ${state.totalGbPerDay >= 1000 ? 'selected' : ''}>TB/day</option>
+            </select>
           </div>
         </div>
 
@@ -62,6 +68,7 @@ export function renderVolumeConfig(
   `;
 
   const totalInput = container.querySelector('#total-volume') as HTMLInputElement;
+  const unitSelect = container.querySelector('#volume-unit') as HTMLSelectElement;
   const auxInput = container.querySelector('#auxiliary-pct') as HTMLInputElement;
   const auxSlider = container.querySelector('#auxiliary-slider') as HTMLInputElement;
   const basInput = container.querySelector('#basic-pct') as HTMLInputElement;
@@ -69,6 +76,25 @@ export function renderVolumeConfig(
   const anaInput = container.querySelector('#analytics-pct') as HTMLInputElement;
   const anaSlider = container.querySelector('#analytics-slider') as HTMLInputElement;
   const tierSelect = container.querySelector('#commitment-tier') as HTMLSelectElement;
+
+  function getDisplayValue(): number {
+    return parseFloat(totalInput.value) || 0;
+  }
+
+  function displayToGb(displayVal: number): number {
+    return unitSelect.value === 'TB' ? displayVal * 1000 : displayVal;
+  }
+
+  function gbToDisplay(gb: number): number {
+    return unitSelect.value === 'TB' ? gb / 1000 : gb;
+  }
+
+  function formatVolume(gb: number): string {
+    if (unitSelect.value === 'TB') {
+      return `${fmtNum(gb / 1000, 2)} TB/day`;
+    }
+    return `${fmtNum(gb)} GB/day`;
+  }
 
   function updateSplitBar() {
     const bar = container.querySelector('#plan-split-bar') as HTMLElement;
@@ -82,11 +108,11 @@ export function renderVolumeConfig(
     `;
 
     summary.innerHTML = `
-      <span style="color: #0969da;">■</span> Auxiliary: ${fmtNum(total * state.auxiliaryPercent / 100)} GB/day (${state.auxiliaryPercent}%)
+      <span style="color: #0969da;">■</span> Auxiliary: ${formatVolume(total * state.auxiliaryPercent / 100)} (${state.auxiliaryPercent}%)
       &nbsp;&nbsp;
-      <span style="color: #1a7f37;">■</span> Basic: ${fmtNum(total * state.basicPercent / 100)} GB/day (${state.basicPercent}%)
+      <span style="color: #1a7f37;">■</span> Basic: ${formatVolume(total * state.basicPercent / 100)} (${state.basicPercent}%)
       &nbsp;&nbsp;
-      <span style="color: #8250df;">■</span> Analytics: ${fmtNum(total * state.analyticsPercent / 100)} GB/day (${state.analyticsPercent}%)
+      <span style="color: #8250df;">■</span> Analytics: ${formatVolume(total * state.analyticsPercent / 100)} (${state.analyticsPercent}%)
     `;
   }
 
@@ -139,9 +165,17 @@ export function renderVolumeConfig(
 
   // Wire events
   totalInput.addEventListener('input', () => {
-    state.totalGbPerDay = parseFloat(totalInput.value) || 0;
+    state.totalGbPerDay = displayToGb(getDisplayValue());
     updateSplitBar();
     onChange(state);
+  });
+
+  unitSelect.addEventListener('change', () => {
+    // Convert the current GB value to the new display unit
+    const currentGb = state.totalGbPerDay;
+    totalInput.value = String(gbToDisplay(currentGb));
+    totalInput.step = unitSelect.value === 'TB' ? '0.1' : '10';
+    updateSplitBar();
   });
 
   (['auxiliary', 'basic', 'analytics'] as const).forEach(plan => {
