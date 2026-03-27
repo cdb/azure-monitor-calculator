@@ -147,16 +147,16 @@ export function calculateMonthlyCost(
   }
 
   // --- Retention ---
-  // Retention cost = steady-state stored volume × price per GB/month.
-  // Steady-state stored volume = daily ingestion × retention days.
-  // Azure charges per GB stored per month (pro-rated daily).
+  // Data flows through: free period → interactive → long-term.
+  // Each period's cost = daily_volume × days_in_that_period × rate.
+  // Periods don't overlap: long-term only stores data after interactive expires.
 
   // Interactive retention (Analytics only, extra days beyond free 31)
   const analyticsInteractiveRetention = state.retentionAnalyticsInteractiveDays > 0
     ? analyticsGbPerDay * state.retentionAnalyticsInteractiveDays * PRICING.retention.interactive.perGbPerMonth
     : 0;
 
-  // Long-term retention (all plans)
+  // Long-term retention (all plans, additional period after interactive/free)
   const analyticsLtRetention = state.retentionAnalyticsLongTermDays > 0
     ? analyticsGbPerDay * state.retentionAnalyticsLongTermDays * PRICING.retention.longTerm.perGbPerMonth
     : 0;

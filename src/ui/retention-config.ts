@@ -28,9 +28,8 @@ export function renderRetentionConfig(
       </div>
       <div class="Box-body">
         <p class="text-small color-fg-muted mb-3">
-          Slide to set total retention period. The free included portion is shown — you only pay for time beyond it.
-          Interactive: $${PRICING.retention.interactive.perGbPerMonth}/GB/month &middot;
-          Long-term: $${PRICING.retention.longTerm.perGbPerMonth}/GB/month
+          Data flows: <strong>Free</strong> → <strong>Interactive</strong> ($${PRICING.retention.interactive.perGbPerMonth}/GB/month) → <strong>Long-term</strong> ($${PRICING.retention.longTerm.perGbPerMonth}/GB/month).
+          Long-term retention starts after the interactive period ends. You only pay for time beyond the free included period.
         </p>
 
         <div class="d-flex flex-wrap" style="gap: 32px;">
