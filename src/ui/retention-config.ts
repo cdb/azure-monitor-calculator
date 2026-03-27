@@ -56,7 +56,7 @@ export function renderRetentionConfig(
               <label class="text-small d-block mb-1">
                 Long-term retention:
                 <strong id="ret-ana-lt-label">${anaLtMonths} months</strong>
-                <span class="color-fg-muted" id="ret-ana-lt-context">${anaLtMonths > 0 ? `(${(anaLtMonths / 12).toFixed(1)} yr, all billed)` : '(none)'}</span>
+                <span class="color-fg-muted" id="ret-ana-lt-context">${anaLtMonths > 0 ? `(after ${anaIntTotal}-day interactive period, ${(anaLtMonths / 12).toFixed(1)} yr, all billed)` : '(none)'}</span>
               </label>
               <input type="range" id="ret-ana-lt" min="0" max="144" step="1"
                 value="${anaLtMonths}"
@@ -126,7 +126,9 @@ export function renderRetentionConfig(
     const anaLtLabel = container.querySelector('#ret-ana-lt-label') as HTMLElement;
     const anaLtCtx = container.querySelector('#ret-ana-lt-context') as HTMLElement;
     if (anaLtLabel) anaLtLabel.textContent = `${anaLt} months`;
-    if (anaLtCtx) anaLtCtx.textContent = anaLt > 0 ? `(${(anaLt / 12).toFixed(1)} yr, all billed)` : '(none)';
+    if (anaLtCtx) anaLtCtx.textContent = anaLt > 0
+      ? `(after ${intTotal}-day interactive period, ${(anaLt / 12).toFixed(1)} yr, all billed)`
+      : '(none)';
 
     const basTotal = parseInt(retBasLt.value) || basFreeMo;
     const basExtra = basTotal - basFreeMo;
