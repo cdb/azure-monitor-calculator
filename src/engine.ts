@@ -147,21 +147,24 @@ export function calculateMonthlyCost(
   }
 
   // --- Retention ---
-  // Stored data = daily volume × retention days. Retention cost is per GB/month.
-  // Interactive retention (Analytics only)
+  // Retention cost = steady-state stored volume × price per GB/month.
+  // Steady-state stored volume = daily ingestion × retention days.
+  // Azure charges per GB stored per month (pro-rated daily).
+
+  // Interactive retention (Analytics only, extra days beyond free 31)
   const analyticsInteractiveRetention = state.retentionAnalyticsInteractiveDays > 0
-    ? (analyticsGbPerDay * state.retentionAnalyticsInteractiveDays / DAYS_PER_MONTH) * PRICING.retention.interactive.perGbPerMonth
+    ? analyticsGbPerDay * state.retentionAnalyticsInteractiveDays * PRICING.retention.interactive.perGbPerMonth
     : 0;
 
   // Long-term retention (all plans)
   const analyticsLtRetention = state.retentionAnalyticsLongTermDays > 0
-    ? (analyticsGbPerDay * state.retentionAnalyticsLongTermDays / DAYS_PER_MONTH) * PRICING.retention.longTerm.perGbPerMonth
+    ? analyticsGbPerDay * state.retentionAnalyticsLongTermDays * PRICING.retention.longTerm.perGbPerMonth
     : 0;
   const basicLtRetention = state.retentionBasicLongTermDays > 0
-    ? (basicGbPerDay * state.retentionBasicLongTermDays / DAYS_PER_MONTH) * PRICING.retention.longTerm.perGbPerMonth
+    ? basicGbPerDay * state.retentionBasicLongTermDays * PRICING.retention.longTerm.perGbPerMonth
     : 0;
   const auxLtRetention = state.retentionAuxiliaryLongTermDays > 0
-    ? (auxGbPerDay * state.retentionAuxiliaryLongTermDays / DAYS_PER_MONTH) * PRICING.retention.longTerm.perGbPerMonth
+    ? auxGbPerDay * state.retentionAuxiliaryLongTermDays * PRICING.retention.longTerm.perGbPerMonth
     : 0;
 
   // --- Query & Export ---
